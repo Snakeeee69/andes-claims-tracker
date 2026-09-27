@@ -24,7 +24,6 @@ fun TrackingScreen() {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // --- TARJETA PRINCIPAL (AZUL CORPORATIVO ANDES) ---
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF1E40AF)),
@@ -56,7 +55,6 @@ fun TrackingScreen() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Grilla de Datos Rápidos
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     InfoBoxItem(titulo = "Tipo", valor = "Accidente vehicular")
                     InfoBoxItem(titulo = "Fecha ocurrencia", valor = "15 ago 2026")
@@ -69,14 +67,12 @@ fun TrackingScreen() {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Stepper de 4 Pasos (Recibido -> En evaluación -> En liquidación -> Cerrado)
                 StepperSiniestro(pasoActual = 2)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- TARJETA DE LIQUIDADOR ASIGNADO ---
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -106,7 +102,6 @@ fun TrackingScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- DETALLES ADICIONALES ---
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -124,7 +119,7 @@ fun TrackingScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- BANNER DE AVISO / NOTIFICACIÓN ---
+        // ---notificacion---
         Surface(
             shape = RoundedCornerShape(12.dp),
             color = Color(0xFFEFF6FF),
