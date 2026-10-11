@@ -12,5 +12,7 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
+    - name: Dar permisos a Maven
+      run: chmod +x mvnw
     - name: Correr pruebas con Maven
       run: ./mvnw test
