@@ -2,6 +2,7 @@ package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,16 +18,28 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.andes.bpo.viewmodel.TrackingViewModel
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Notifications
+
 @Composable
 fun TrackingScreen(
     navController: NavController,
     rut: String,
-    viewModel: TrackingViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: TrackingViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Variable para controlar si se muestra la alerta de cierre de sesión
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(rut) {
         viewModel.cargarDatosSiniestro(rut)
@@ -37,7 +50,6 @@ fun TrackingScreen(
             CircularProgressIndicator(color = Color(0xFF1E40AF))
         }
     } else {
-        // Mapeo simple para convertir el número de estado a texto
         val textoEstado = when(uiState.estadoActual) {
             1 -> "Recibido"
             2 -> "En evaluación"
@@ -53,6 +65,25 @@ fun TrackingScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(
+                    onClick = { navController.navigate("notificaciones") },
+                    modifier = Modifier
+                        .background(Color.White, CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Notifications,
+                        contentDescription = "Notificaciones",
+                        tint = Color(0xFF1E40AF)
+                    )
+                }
+            }
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF1E40AF)),
@@ -70,7 +101,25 @@ fun TrackingScreen(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        BadgeEstado(textoEstado)
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            BadgeEstado(textoEstado)
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            IconButton(
+                                onClick = {
+                                    // En lugar de salir directo, mostramos la alerta
+                                    showLogoutDialog = true
+                                },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ExitToApp,
+                                    contentDescription = "Cerrar sesión",
+                                    tint = Color.White
+                                )
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))
@@ -117,7 +166,6 @@ fun TrackingScreen(
                         modifier = Modifier.size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            // Extrae la primera letra del nombre para el círculo
                             Text(
                                 text = uiState.nombreLiquidador.take(1).uppercase(),
                                 color = Color.White,
@@ -137,6 +185,42 @@ fun TrackingScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Button(
+                onClick = { navController.navigate("evidencia") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Description,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Ver / Adjuntar Evidencia", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { navController.navigate("historial") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.History,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Historial de Gestiones", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -154,7 +238,6 @@ fun TrackingScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ---notificacion---
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = Color(0xFFEFF6FF),
@@ -173,7 +256,40 @@ fun TrackingScreen(
             }
         }
     }
+
+    // --- ALERTA DE CIERRE DE SESIÓN ---
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Text(text = "Cerrar sesión", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text("¿Estás seguro de que deseas salir? Tendrás que volver a ingresar tu RUT para ver el estado de tu siniestro.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        navController.navigate("login") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                ) {
+                    Text("Sí, salir", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
+
 @Composable
 fun InfoBoxItem(titulo: String, valor: String) {
     Surface(
@@ -187,6 +303,7 @@ fun InfoBoxItem(titulo: String, valor: String) {
         }
     }
 }
+
 @Composable
 fun BadgeEstado(texto: String) {
     Surface(
@@ -242,7 +359,6 @@ fun StepperSiniestro(pasoActual: Int) {
     }
 }
 
-//clase para ilusion visual del RUT
 @Composable
 fun DetalleFila(etiqueta: String, valor: String) {
     Row(

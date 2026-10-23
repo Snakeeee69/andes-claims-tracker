@@ -7,6 +7,9 @@ import androidx.navigation.compose.rememberNavController
 import com.andes.bpo.ui.screens.LoginScreen
 import com.andes.bpo.ui.screens.RecuperarContrasenaScreen
 import com.andes.bpo.ui.screens.TrackingScreen
+import com.andes.bpo.ui.screens.EvidenciaScreen
+import com.andes.bpo.ui.screens.HistorialScreen
+import com.andes.bpo.ui.screens.NotificacionesScreen
 
 @Composable
 fun AppNavigation() {
@@ -27,6 +30,16 @@ fun AppNavigation() {
             val rutUsuario = backStackEntry.arguments?.getString("rut") ?: ""
 
             TrackingScreen(navController = navController, rut = rutUsuario)
+        }
+        composable("evidencia") {
+            EvidenciaScreen(navController = navController)
+        }
+
+        composable("historial") {
+            HistorialScreen(navController = navController)
+        }
+        composable("notificaciones") {
+            NotificacionesScreen(navController = navController)
         }
     }
 }
