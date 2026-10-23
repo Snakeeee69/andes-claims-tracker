@@ -29,7 +29,7 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.isLoginSuccessful) {
         if (uiState.isLoginSuccessful) {
-            navController.navigate("tracking") {
+            navController.navigate("tracking/${uiState.rut}") {
                 popUpTo("login") { inclusive = true }
             }
         }

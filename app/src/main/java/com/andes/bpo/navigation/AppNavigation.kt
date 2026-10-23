@@ -23,8 +23,10 @@ fun AppNavigation() {
             RecuperarContrasenaScreen(navController)
         }
 
-        composable("tracking") {
-            TrackingScreen(navController)
+        composable("tracking/{rut}") { backStackEntry ->
+            val rutUsuario = backStackEntry.arguments?.getString("rut") ?: ""
+
+            TrackingScreen(navController = navController, rut = rutUsuario)
         }
     }
 }

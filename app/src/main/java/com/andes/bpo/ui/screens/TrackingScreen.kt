@@ -19,13 +19,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import com.andes.bpo.viewmodel.TrackingViewModel
-
+import androidx.compose.runtime.LaunchedEffect
 @Composable
 fun TrackingScreen(
     navController: NavController,
+    rut: String,
     viewModel: TrackingViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(rut) {
+        viewModel.cargarDatosSiniestro(rut)
+    }
 
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
