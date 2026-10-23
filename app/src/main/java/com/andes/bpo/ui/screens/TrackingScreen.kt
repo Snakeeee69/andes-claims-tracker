@@ -208,6 +208,7 @@ fun StepperSiniestro(pasoActual: Int) {
     }
 }
 
+//clase para ilusion visual del RUT
 @Composable
 fun DetalleFila(etiqueta: String, valor: String) {
     Row(
