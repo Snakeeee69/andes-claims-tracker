@@ -14,131 +14,161 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavController
+import com.andes.bpo.viewmodel.TrackingViewModel
 
 @Composable
-fun TrackingScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF4F6F9))
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    ) {
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E40AF)),
-            modifier = Modifier.fillMaxWidth()
+fun TrackingScreen(
+    navController: NavController,
+    viewModel: TrackingViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    if (uiState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFF1E40AF))
+        }
+    } else {
+        // Mapeo simple para convertir el número de estado a texto
+        val textoEstado = when(uiState.estadoActual) {
+            1 -> "Recibido"
+            2 -> "En evaluación"
+            3 -> "En liquidación"
+            4 -> "Cerrado"
+            else -> "En progreso"
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF4F6F9))
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E40AF)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "MI SINIESTRO ACTIVO",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        BadgeEstado(textoEstado)
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = uiState.numeroSiniestro,
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        InfoBoxItem(titulo = "Tipo", valor = uiState.tipo)
+                        InfoBoxItem(titulo = "Fecha ocurrencia", valor = uiState.fechaOcurrencia)
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        InfoBoxItem(titulo = "Vehículo", valor = uiState.patente)
+                        InfoBoxItem(titulo = "Reporte", valor = uiState.fechaReporte)
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    StepperSiniestro(pasoActual = uiState.estadoActual)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "MI SINIESTRO ACTIVO",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    BadgeEstado("En evaluación")
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "SIN-2026-08471",
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    InfoBoxItem(titulo = "Tipo", valor = "Accidente vehicular")
-                    InfoBoxItem(titulo = "Fecha ocurrencia", valor = "15 ago 2026")
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    InfoBoxItem(titulo = "Vehículo", valor = "BJKR-94")
-                    InfoBoxItem(titulo = "Reporte", valor = "16 ago 2026")
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                StepperSiniestro(pasoActual = 2)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFF818CF8),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("MG", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Surface(
+                        shape = CircleShape,
+                        color = Color(0xFF818CF8),
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            // Extrae la primera letra del nombre para el círculo
+                            Text(
+                                text = uiState.nombreLiquidador.take(1).uppercase(),
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text("Liquidador/a asignado/a", color = Color.Gray, fontSize = 12.sp)
+                        Text(uiState.nombreLiquidador, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1F2937))
+                        Text(uiState.empresaLiquidador, color = Color.Gray, fontSize = 12.sp)
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text("Liquidador/a asignado/a", color = Color.Gray, fontSize = 12.sp)
-                    Text("María González", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1F2937))
-                    Text("Liquidaciones Andes · Andes SpA", color = Color.Gray, fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Detalles del siniestro", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1F2937))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    DetalleFila("Subtipo", uiState.subtipo)
+                    DetalleFila("Modelo", uiState.modeloVehiculo)
+                    DetalleFila("Póliza", uiState.numeroPoliza)
+                    DetalleFila("Aseguradora", uiState.aseguradora)
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Detalles del siniestro", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1F2937))
-                Spacer(modifier = Modifier.height(12.dp))
-                DetalleFila("Subtipo", "Colisión con daños materiales")
-                DetalleFila("Modelo", "Toyota Yaris 2022")
-                DetalleFila("Póliza", "POL-88231-VH")
-                DetalleFila("Aseguradora", "Aseguradora del Sur S.A.")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ---notificacion---
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = Color(0xFFEFF6FF),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("ℹ️", fontSize = 18.sp)
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "Te notificaremos de inmediato ante cualquier cambio de estado. No necesitas llamar ni visitar una oficina.",
-                    color = Color(0xFF1E40AF),
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp
-                )
+            // ---notificacion---
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFEFF6FF),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("ℹ️", fontSize = 18.sp)
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Te notificaremos de inmediato ante cualquier cambio de estado. No necesitas llamar ni visitar una oficina.",
+                        color = Color(0xFF1E40AF),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                }
             }
         }
     }
 }
-
 @Composable
 fun InfoBoxItem(titulo: String, valor: String) {
     Surface(
@@ -152,7 +182,6 @@ fun InfoBoxItem(titulo: String, valor: String) {
         }
     }
 }
-
 @Composable
 fun BadgeEstado(texto: String) {
     Surface(

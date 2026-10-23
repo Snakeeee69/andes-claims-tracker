@@ -24,7 +24,7 @@ fun AppNavigation() {
         }
 
         composable("tracking") {
-            TrackingScreen()
+            TrackingScreen(navController)
         }
     }
 }
