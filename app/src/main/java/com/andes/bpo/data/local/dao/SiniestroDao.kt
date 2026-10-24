@@ -20,32 +20,32 @@ interface SiniestroDao {
     fun getSiniestroPorId(idSiniestro: Int): Flow<SiniestroEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSiniestro(siniestro: SiniestroEntity): Long
+    fun insertSiniestro(siniestro: SiniestroEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSiniestrosIniciales(siniestros: List<SiniestroEntity>)
+    fun insertSiniestrosIniciales(siniestros: List<SiniestroEntity>)
 
     @Query("SELECT * FROM gestiones WHERE idSiniestro = :idSiniestro AND visibleAsegurado = 1 ORDER BY idGestion DESC")
     fun getGestionesVisibles(idSiniestro: Int): Flow<List<GestionEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGestionesIniciales(gestiones: List<GestionEntity>)
+    fun insertGestionesIniciales(gestiones: List<GestionEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGestion(gestion: GestionEntity): Long
+    fun insertGestion(gestion: GestionEntity): Long
 
     @Query("SELECT * FROM documentos WHERE idSiniestro = :idSiniestro ORDER BY idDocumento ASC")
     fun getDocumentosPorSiniestro(idSiniestro: Int): Flow<List<DocumentoEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDocumentosIniciales(documentos: List<DocumentoEntity>)
+    fun insertDocumentosIniciales(documentos: List<DocumentoEntity>)
 
     @Query("UPDATE documentos SET estado = 'Entregado', nombreArchivo = :nombreArchivo, fechaRecepcion = :fechaActual WHERE idDocumento = :idDocumento")
-    suspend fun marcarDocumentoEntregado(idDocumento: Int, nombreArchivo: String, fechaActual: String)
+    fun marcarDocumentoEntregado(idDocumento: Int, nombreArchivo: String, fechaActual: String): Int
 
     @Query("SELECT * FROM avisos ORDER BY idAviso DESC")
     fun getAvisos(): Flow<List<AvisoEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAviso(aviso: AvisoEntity)
+    fun insertAviso(aviso: AvisoEntity)
 }
