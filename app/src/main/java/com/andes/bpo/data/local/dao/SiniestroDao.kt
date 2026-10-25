@@ -1,9 +1,6 @@
 package com.andes.bpo.data.local.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.andes.bpo.data.local.entity.AvisoEntity
 import com.andes.bpo.data.local.entity.DocumentoEntity
 import com.andes.bpo.data.local.entity.GestionEntity
@@ -20,32 +17,30 @@ interface SiniestroDao {
     fun getSiniestroPorId(idSiniestro: Int): Flow<SiniestroEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertSiniestro(siniestro: SiniestroEntity): Long
+    suspend fun insertSiniestro(siniestro: SiniestroEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertSiniestrosIniciales(siniestros: List<SiniestroEntity>)
+    suspend fun insertSiniestrosIniciales(siniestros: List<SiniestroEntity>)
 
     @Query("SELECT * FROM gestiones WHERE idSiniestro = :idSiniestro AND visibleAsegurado = 1 ORDER BY idGestion DESC")
     fun getGestionesVisibles(idSiniestro: Int): Flow<List<GestionEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertGestionesIniciales(gestiones: List<GestionEntity>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertGestion(gestion: GestionEntity): Long
+    suspend fun insertGestion(gestion: GestionEntity): Long
 
     @Query("SELECT * FROM documentos WHERE idSiniestro = :idSiniestro ORDER BY idDocumento ASC")
     fun getDocumentosPorSiniestro(idSiniestro: Int): Flow<List<DocumentoEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertDocumentosIniciales(documentos: List<DocumentoEntity>)
+    suspend fun insertDocumento(documento: DocumentoEntity): Long
 
+    // Retorna Int (filas modificadas) para evitar el error 'jvm signature V' en KSP
     @Query("UPDATE documentos SET estado = 'Entregado', nombreArchivo = :nombreArchivo, fechaRecepcion = :fechaActual WHERE idDocumento = :idDocumento")
-    fun marcarDocumentoEntregado(idDocumento: Int, nombreArchivo: String, fechaActual: String): Int
+    suspend fun marcarDocumentoEntregado(idDocumento: Int, nombreArchivo: String, fechaActual: String): Int
 
     @Query("SELECT * FROM avisos ORDER BY idAviso DESC")
     fun getAvisos(): Flow<List<AvisoEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAviso(aviso: AvisoEntity)
+    suspend fun insertAviso(aviso: AvisoEntity): Long
 }

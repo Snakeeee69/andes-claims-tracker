@@ -1,5 +1,9 @@
 package com.andes.bpo.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,36 +12,95 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-// Modelo temporal para la UI, alineado con el EvidenciaEntity de tu compañero
 data class EvidenciaUiModel(
     val id: Int,
-    val nombreArchivo: String, // En la DB tu amigo guardará la ruta_archivo, aquí mostramos un nombre amigable
-    val tipoArchivo: String
+    val nombreArchivo: String,
+    val tipoArchivo: String,
+    val uri: String? = null
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-004801") {
-    val colorAndes = Color(0xFF1E40AF)
+    val context = LocalContext.current
+    val colorAndes = Color(0xFF225D49) // Verde Andes SpA
 
-    // Lista simulada de evidencias que luego vendrán de la base de datos de tu compañero
+    var showDialog by remember { mutableStateOf(false) }
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+
     val evidenciasMock = remember {
         mutableStateListOf(
             EvidenciaUiModel(1, "Declaracion_Jurada.pdf", "PDF"),
             EvidenciaUiModel(2, "Foto_Choque_Frontal.jpg", "IMAGEN")
         )
+    }
+
+    // Launcher para selección de imágenes desde la Galería
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            evidenciasMock.add(
+                EvidenciaUiModel(
+                    id = evidenciasMock.size + 1,
+                    nombreArchivo = "Galeria_${System.currentTimeMillis()}.jpg",
+                    tipoArchivo = "IMAGEN",
+                    uri = it.toString()
+                )
+            )
+        }
+    }
+
+    // Launcher para selección de documentos PDF
+    val pdfLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            evidenciasMock.add(
+                EvidenciaUiModel(
+                    id = evidenciasMock.size + 1,
+                    nombreArchivo = "Documento_${System.currentTimeMillis()}.pdf",
+                    tipoArchivo = "PDF",
+                    uri = it.toString()
+                )
+            )
+        }
+    }
+
+    // Launcher para tomar fotografías con la Cámara
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && tempCameraUri != null) {
+            evidenciasMock.add(
+                EvidenciaUiModel(
+                    id = evidenciasMock.size + 1,
+                    nombreArchivo = "Camara_${System.currentTimeMillis()}.jpg",
+                    tipoArchivo = "IMAGEN",
+                    uri = tempCameraUri.toString()
+                )
+            )
+        }
     }
 
     Scaffold(
@@ -57,26 +120,12 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
                             tint = colorAndes
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = colorAndes
-                )
+                }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    // Aquí iría la lógica para abrir la cámara o galería
-                    // Por ahora, simulamos agregar un archivo nuevo para probar la UI
-                    evidenciasMock.add(
-                        EvidenciaUiModel(
-                            id = evidenciasMock.size + 1,
-                            nombreArchivo = "Nueva_Evidencia_${evidenciasMock.size + 1}.jpg",
-                            tipoArchivo = "IMAGEN"
-                        )
-                    )
-                },
+                onClick = { showDialog = true },
                 containerColor = colorAndes,
                 contentColor = Color.White
             ) {
@@ -99,23 +148,69 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            if (evidenciasMock.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No hay evidencia adjunta todavía.", color = Color.Gray)
-                }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp) // Espacio para que el FAB no tape el último item
-                ) {
-                    items(evidenciasMock) { evidencia ->
-                        EvidenciaItemCard(evidencia = evidencia, colorAndes = colorAndes)
-                    }
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                items(evidenciasMock) { evidencia ->
+                    EvidenciaItemCard(evidencia = evidencia, colorAndes = colorAndes)
                 }
             }
+        }
+
+        // Diálogo para seleccionar la fuente del archivo
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Adjuntar Evidencia", fontWeight = FontWeight.Bold) },
+                text = { Text("Selecciona cómo deseas agregar la documentación a tu caso (máx. 5 MB).") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDialog = false
+                            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                            val imageFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", context.externalCacheDir)
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                imageFile
+                            )
+                            tempCameraUri = uri
+                            cameraLauncher.launch(uri)
+                        }
+                    ) {
+                        Icon(Icons.Default.CameraAlt, contentDescription = null)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Cámara")
+                    }
+                },
+                dismissButton = {
+                    Row {
+                        TextButton(
+                            onClick = {
+                                showDialog = false
+                                galleryLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
+                        ) {
+                            Icon(Icons.Default.Image, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Galería")
+                        }
+                        TextButton(
+                            onClick = {
+                                showDialog = false
+                                pdfLauncher.launch("application/pdf")
+                            }
+                        ) {
+                            Icon(Icons.Default.PictureAsPdf, contentDescription = null)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("PDF")
+                        }
+                    }
+                }
+            )
         }
     }
 }
@@ -141,7 +236,7 @@ fun EvidenciaItemCard(evidencia: EvidenciaUiModel, colorAndes: Color) {
             ) {
                 Icon(
                     imageVector = if (evidencia.tipoArchivo == "PDF") Icons.Filled.Description else Icons.Filled.Image,
-                    contentDescription = "Tipo de archivo",
+                    contentDescription = null,
                     tint = colorAndes
                 )
             }
@@ -152,7 +247,7 @@ fun EvidenciaItemCard(evidencia: EvidenciaUiModel, colorAndes: Color) {
                 Text(
                     text = evidencia.nombreArchivo,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     color = Color.Black
                 )
                 Text(

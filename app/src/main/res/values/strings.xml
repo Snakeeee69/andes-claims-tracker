@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">SiniestrosBPO</string>
+    <string name="app_name">Andes Claims Tracker</string>
+    <string name="company_name">Servicios Corporativos Andes SpA</string>
+    <string name="btn_reportar">Reportar siniestro</string>
 </resources>

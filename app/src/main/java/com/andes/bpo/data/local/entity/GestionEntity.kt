@@ -10,6 +10,6 @@ data class GestionEntity(
     val idSiniestro: Int,
     val fechaHora: String,
     val descripcion: String,
-    val responsable: String,
+    val responsable: String = "Sistema",
     val visibleAsegurado: Boolean = true
 )

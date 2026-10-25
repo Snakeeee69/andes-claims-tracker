@@ -1,19 +1,20 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.andes.bpo"
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk = 35 // Cambiado de release(37) a 35 estable para que KSP no explote
 
     defaultConfig {
         applicationId = "com.andes.bpo"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 35 // Cambiado a 35 coincidiendo con compileSdk
         versionCode = 1
         versionName = "1.0"
 
@@ -22,9 +23,11 @@ android {
 
     buildTypes {
         release {
-            optimization {
-                enable = false
-            }
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -33,6 +36,15 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    lint {
+        checkReleaseBuilds = false
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
@@ -54,15 +66,19 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    //Retrofit
+    // MATERIAL CLASSIC (Soluciona el error de Resource Linking)
+    implementation("com.google.android.material:material:1.12.0")
+
+    // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    // bd local
+    // BD local Room (Versión estable compatible con SDK 35 y KSP clásico)
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.navigation:navigation-compose:2.8.2")

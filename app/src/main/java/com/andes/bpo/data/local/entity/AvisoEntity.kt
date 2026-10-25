@@ -7,8 +7,8 @@ import androidx.room.PrimaryKey
 data class AvisoEntity(
     @PrimaryKey(autoGenerate = true)
     val idAviso: Int = 0,
-    val idSiniestro: Int,
-    val fechaHora: String,
+    val idSiniestro: Int = 0,
     val mensaje: String,
+    val fechaHora: String,
     val leido: Boolean = false
 )
