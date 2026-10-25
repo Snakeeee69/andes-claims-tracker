@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
-// Modelo temporal para simular la tabla "gestion"
 data class GestionUiModel(
     val id: Int,
     val fechaHora: String,
@@ -34,12 +33,23 @@ data class GestionUiModel(
 fun HistorialScreen(navController: NavController, siniestroId: String = "SIN-26-004801") {
     val colorAndes = Color(0xFF1E40AF)
 
-    // Datos simulados (Mock) ordenados del más reciente al más antiguo
     val historialMock = remember {
         listOf(
-            GestionUiModel(3, "18 ago 2026 • 14:20", "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.", "En evaluación"),
-            GestionUiModel(2, "17 ago 2026 • 09:15", "Se asignó el liquidador María González al caso.", "En evaluación"),
-            GestionUiModel(1, "16 ago 2026 • 10:30", "Siniestro reportado e ingresado al sistema de Andes BPO.", "Recibido")
+            GestionUiModel(3,
+                "18 ago 2026 • 14:20",
+                "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.",
+                "En evaluación"
+            ),
+            GestionUiModel(2,
+                "17 ago 2026 • 09:15",
+                "Se asignó el liquidador María González al caso.",
+                "En evaluación"
+            ),
+            GestionUiModel(1,
+                "16 ago 2026 • 10:30",
+                "Siniestro reportado e ingresado al sistema de Andes BPO.",
+                "Recibido"
+            )
         )
     }
 
@@ -130,11 +140,10 @@ fun HistorialItem(gestion: GestionUiModel, colorAndes: Color, isLastItem: Boolea
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Tarjeta con la información
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(bottom = 24.dp) // Espacio entre las tarjetas
+                .padding(bottom = 24.dp)
         ) {
             Text(
                 text = gestion.fechaHora,

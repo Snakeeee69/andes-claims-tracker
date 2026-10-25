@@ -22,6 +22,7 @@ private val LightColorScheme = lightColorScheme(
 fun AndesTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = LightColorScheme,
+        typography = Typography,
         content = content
     )
 }

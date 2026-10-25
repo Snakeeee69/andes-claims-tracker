@@ -38,7 +38,6 @@ fun TrackingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Variable para controlar si se muestra la alerta de cierre de sesión
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(rut) {
@@ -108,7 +107,6 @@ fun TrackingScreen(
 
                             IconButton(
                                 onClick = {
-                                    // En lugar de salir directo, mostramos la alerta
                                     showLogoutDialog = true
                                 },
                                 modifier = Modifier.size(24.dp)
@@ -257,7 +255,6 @@ fun TrackingScreen(
         }
     }
 
-    // --- ALERTA DE CIERRE DE SESIÓN ---
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },

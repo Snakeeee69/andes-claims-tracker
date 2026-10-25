@@ -93,7 +93,7 @@ fun RecuperarContrasenaScreen(navController: NavController) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Éxito",
-                    tint = Color(0xFF10B981), // Verde esmeralda para el éxito
+                    tint = Color(0xFF10B981),
                     modifier = Modifier
                         .size(80.dp)
                         .padding(bottom = 16.dp)

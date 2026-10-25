@@ -43,7 +43,7 @@ data class EvidenciaUiModel(
 @Composable
 fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-004801") {
     val context = LocalContext.current
-    val colorAndes = Color(0xFF225D49) // Verde Andes SpA
+    val colorAndes = Color(0xFF225D49)
 
     var showDialog by remember { mutableStateOf(false) }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
@@ -55,7 +55,6 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
         )
     }
 
-    // Launcher para selección de imágenes desde la Galería
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
@@ -71,7 +70,6 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
         }
     }
 
-    // Launcher para selección de documentos PDF
     val pdfLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -87,7 +85,6 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
         }
     }
 
-    // Launcher para tomar fotografías con la Cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
@@ -158,7 +155,6 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
             }
         }
 
-        // Diálogo para seleccionar la fuente del archivo
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },

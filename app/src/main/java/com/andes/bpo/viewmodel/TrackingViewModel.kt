@@ -14,7 +14,6 @@ class TrackingViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TrackingUiState())
     val uiState: StateFlow<TrackingUiState> = _uiState.asStateFlow()
 
-    // Instanciamos el repositorio
     private val repository = SiniestrosRepository()
 
     fun cargarDatosSiniestro(rut: String) {

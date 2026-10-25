@@ -15,7 +15,6 @@ import com.andes.bpo.ui.screens.NotificacionesScreen
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // NavHost es el contenedor que cambia las pantallas
     NavHost(navController = navController, startDestination = "login") {
 
         composable("login") {

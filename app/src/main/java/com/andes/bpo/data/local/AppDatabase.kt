@@ -33,7 +33,6 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
             return INSTANCE ?: synchronized(this) {
-                // Usamos un Provider para romper la dependencia circular del Singleton durante la creación del archivo
                 lateinit var instance: AppDatabase
                 instance = Room.databaseBuilder(
                     context.applicationContext,
@@ -43,7 +42,6 @@ abstract class AppDatabase : RoomDatabase() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
                         scope.launch(Dispatchers.IO) {
-                            // Aquí invocamos de forma segura la instancia que se está terminando de construir
                             instance.siniestroDao().insertSiniestrosIniciales(
                                 listOf(
                                     SiniestroEntity(

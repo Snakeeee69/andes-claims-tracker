@@ -34,7 +34,6 @@ interface SiniestroDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDocumento(documento: DocumentoEntity): Long
 
-    // Retorna Int (filas modificadas) para evitar el error 'jvm signature V' en KSP
     @Query("UPDATE documentos SET estado = 'Entregado', nombreArchivo = :nombreArchivo, fechaRecepcion = :fechaActual WHERE idDocumento = :idDocumento")
     suspend fun marcarDocumentoEntregado(idDocumento: Int, nombreArchivo: String, fechaActual: String): Int
 

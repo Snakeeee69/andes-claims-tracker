@@ -4,7 +4,6 @@ import com.andes.bpo.model.TrackingUiState
 import kotlinx.coroutines.delay
 
 class SiniestrosRepository {
-    // Aquí usaremos Retrofit para hablar con la API real
 
     suspend fun obtenerSiniestroPorRut(rut: String): TrackingUiState {
         delay(1500) // Simula el tiempo de carga de internet

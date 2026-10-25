@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.andes.bpo"
-    compileSdk = 35 // Cambiado de release(37) a 35 estable para que KSP no explote
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.andes.bpo"
         minSdk = 26
-        targetSdk = 35 // Cambiado a 35 coincidiendo con compileSdk
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -66,14 +66,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    // MATERIAL CLASSIC (Soluciona el error de Resource Linking)
     implementation("com.google.android.material:material:1.12.0")
 
-    // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
-    // BD local Room (Versión estable compatible con SDK 35 y KSP clásico)
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")

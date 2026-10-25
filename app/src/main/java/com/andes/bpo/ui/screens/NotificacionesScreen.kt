@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
-// Modelo temporal para simular la tabla "aviso"
 data class AvisoUiModel(
     val id: Int,
     val titulo: String,
@@ -35,12 +34,26 @@ data class AvisoUiModel(
 fun NotificacionesScreen(navController: NavController) {
     val colorAndes = Color(0xFF1E40AF)
 
-    // Datos simulados. Los primeros dos están "no leídos".
     val notificacionesMock = remember {
         mutableStateListOf(
-            AvisoUiModel(1, "Actualización de Estado", "Tu caso ha pasado a la etapa 'En evaluación'.", "Hace 2 horas", false),
-            AvisoUiModel(2, "Documentación requerida", "Necesitamos que adjuntes una copia de tu carnet de identidad.", "Ayer", false),
-            AvisoUiModel(3, "Siniestro Ingresado", "Hemos recibido tu reporte de siniestro exitosamente.", "16 ago", true)
+            AvisoUiModel(1,
+                "Actualización de Estado",
+                "Tu caso ha pasado a la etapa 'En evaluación'.",
+                "Hace 2 horas",
+                false
+            ),
+            AvisoUiModel(2,
+                "Documentación requerida",
+                "Necesitamos que adjuntes una copia de tu carnet de identidad.",
+                "Ayer",
+                false
+            ),
+            AvisoUiModel(3,
+                "Siniestro Ingresado",
+                "Hemos recibido tu reporte de siniestro exitosamente.",
+                "16 ago",
+                true
+            )
         )
     }
 
@@ -106,7 +119,6 @@ fun NotificacionItem(notificacion: AvisoUiModel, colorAndes: Color, onClick: () 
                 .padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Icono de campana
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -123,7 +135,6 @@ fun NotificacionItem(notificacion: AvisoUiModel, colorAndes: Color, onClick: () 
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Textos
             Column(modifier = Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -151,7 +162,6 @@ fun NotificacionItem(notificacion: AvisoUiModel, colorAndes: Color, onClick: () 
                 )
             }
 
-            // Punto indicador de "no leído"
             if (!notificacion.leido) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(
