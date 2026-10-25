@@ -45,87 +45,93 @@ fun RecuperarContrasenaScreen(navController: NavController) {
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
+        AnimacionEntrada {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            if (!enviado) {
-                Text(
-                    text = "Ingresa tu RUT o correo electrónico asociado y te enviaremos las instrucciones para restablecer tu contraseña.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.DarkGray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
-
-                OutlinedTextField(
-                    value = correoORut,
-                    onValueChange = { correoORut = it },
-                    label = { Text("RUT o Correo") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = colorAndes,
-                        focusedLabelColor = colorAndes
+                if (!enviado) {
+                    Text(
+                        text = "Ingresa tu RUT o correo electrónico asociado y te enviaremos las instrucciones para restablecer tu contraseña.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.DarkGray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 32.dp)
                     )
-                )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    OutlinedTextField(
+                        value = correoORut,
+                        onValueChange = { correoORut = it },
+                        label = { Text("RUT o Correo") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = colorAndes,
+                            focusedLabelColor = colorAndes
+                        )
+                    )
 
-                Button(
-                    onClick = { enviado = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colorAndes),
-                    enabled = correoORut.isNotBlank()
-                ) {
-                    Text("Enviar instrucciones", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-            } else {
-                Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Éxito",
-                    tint = Color(0xFF10B981),
-                    modifier = Modifier
-                        .size(80.dp)
-                        .padding(bottom = 16.dp)
-                )
+                    Button(
+                        onClick = { enviado = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = colorAndes),
+                        enabled = correoORut.isNotBlank()
+                    ) {
+                        Text("Enviar instrucciones", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                } else {
+                    Spacer(modifier = Modifier.height(40.dp))
 
-                Text(
-                    text = "¡Instrucciones enviadas!",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = colorAndes,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Éxito",
+                        tint = Color(0xFF10B981),
+                        modifier = Modifier
+                            .size(80.dp)
+                            .padding(bottom = 16.dp)
+                    )
 
-                Text(
-                    text = "Revisa tu bandeja de entrada o carpeta de spam.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
+                    Text(
+                        text = "¡Instrucciones enviadas!",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = colorAndes,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colorAndes)
-                ) {
-                    Text("Volver al inicio de sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Revisa tu bandeja de entrada o carpeta de spam.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 32.dp)
+                    )
+
+                    Button(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = colorAndes)
+                    ) {
+                        Text(
+                            "Volver al inicio de sesión",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }

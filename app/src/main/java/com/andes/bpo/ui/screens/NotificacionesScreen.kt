@@ -81,6 +81,7 @@ fun NotificacionesScreen(navController: NavController) {
         },
         containerColor = BackgroundAndes
     ) { paddingValues ->
+        AnimacionEntrada {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -101,6 +102,7 @@ fun NotificacionesScreen(navController: NavController) {
                     }
                 }
             }
+        }
         }
     }
 }

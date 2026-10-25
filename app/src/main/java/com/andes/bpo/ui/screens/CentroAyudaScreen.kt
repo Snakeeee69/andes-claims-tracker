@@ -73,27 +73,29 @@ fun CentroAyudaScreen(navController: NavController) {
         },
         containerColor = BackgroundAndes
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Estamos para acompañarte. Resuelve tus dudas sobre el seguimiento de tu caso.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
+        AnimacionEntrada {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
             ) {
-                items(preguntas) { item ->
-                    PreguntaAcordeonCard(item)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Estamos para acompañarte. Resuelve tus dudas sobre el seguimiento de tu caso.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp)
+                ) {
+                    items(preguntas) { item ->
+                        PreguntaAcordeonCard(item)
+                    }
                 }
             }
         }

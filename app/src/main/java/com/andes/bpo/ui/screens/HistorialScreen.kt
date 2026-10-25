@@ -77,30 +77,32 @@ fun HistorialScreen(navController: NavController, siniestroId: String = "SIN-26-
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Sigue paso a paso las acciones realizadas en tu caso.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 24.dp)
+        AnimacionEntrada {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
             ) {
-                items(historialMock.size) { index ->
-                    val gestion = historialMock[index]
-                    val isLastItem = index == historialMock.size - 1
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    HistorialItem(gestion = gestion, colorAndes = colorAndes, isLastItem = isLastItem)
+                Text(
+                    text = "Sigue paso a paso las acciones realizadas en tu caso.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 24.dp)
+                ) {
+                    items(historialMock.size) { index ->
+                        val gestion = historialMock[index]
+                        val isLastItem = index == historialMock.size - 1
+
+                        HistorialItem(gestion = gestion, colorAndes = colorAndes, isLastItem = isLastItem)
+                    }
                 }
             }
         }

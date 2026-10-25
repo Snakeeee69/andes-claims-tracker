@@ -131,6 +131,7 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
             }
         }
     ) { paddingValues ->
+        AnimacionEntrada {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -155,6 +156,7 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
                 }
             }
         }
+    }
 
         if (showDialog) {
             AlertDialog(
