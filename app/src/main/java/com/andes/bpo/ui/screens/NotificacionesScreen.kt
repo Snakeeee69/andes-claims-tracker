@@ -20,6 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.andes.bpo.ui.theme.BackgroundAndes
+import com.andes.bpo.ui.theme.MintAndes
+import com.andes.bpo.ui.theme.PrimaryAndes
 
 data class AvisoUiModel(
     val id: Int,
@@ -32,7 +35,7 @@ data class AvisoUiModel(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificacionesScreen(navController: NavController) {
-    val colorAndes = Color(0xFF1E40AF)
+    val colorAndes = PrimaryAndes
 
     val notificacionesMock = remember {
         mutableStateListOf(
@@ -71,11 +74,12 @@ fun NotificacionesScreen(navController: NavController) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
+                    containerColor = BackgroundAndes,
                     titleContentColor = colorAndes
                 )
             )
-        }
+        },
+        containerColor = BackgroundAndes
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -86,11 +90,10 @@ fun NotificacionesScreen(navController: NavController) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 items(notificacionesMock) { notificacion ->
                     NotificacionItem(notificacion = notificacion, colorAndes = colorAndes) {
-                        // Al hacer clic, marcamos como leído (simulación)
                         val index = notificacionesMock.indexOf(notificacion)
                         if (index != -1) {
                             notificacionesMock[index] = notificacion.copy(leido = true)
@@ -104,7 +107,7 @@ fun NotificacionesScreen(navController: NavController) {
 
 @Composable
 fun NotificacionItem(notificacion: AvisoUiModel, colorAndes: Color, onClick: () -> Unit) {
-    val backgroundColor = if (notificacion.leido) Color(0xFFF3F4F6) else Color(0xFFE0E7FF)
+    val backgroundColor = if (notificacion.leido) Color.White else MintAndes
 
     Card(
         modifier = Modifier
@@ -144,8 +147,8 @@ fun NotificacionItem(notificacion: AvisoUiModel, colorAndes: Color, onClick: () 
                     Text(
                         text = notificacion.titulo,
                         fontWeight = if (notificacion.leido) FontWeight.Normal else FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = Color.Black
+                        fontSize = 15.sp,
+                        color = Color(0xFF263C35)
                     )
                     Text(
                         text = notificacion.fecha,
@@ -156,7 +159,7 @@ fun NotificacionItem(notificacion: AvisoUiModel, colorAndes: Color, onClick: () 
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = notificacion.mensaje,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     color = Color.DarkGray,
                     lineHeight = 18.sp
                 )
@@ -166,9 +169,9 @@ fun NotificacionItem(notificacion: AvisoUiModel, colorAndes: Color, onClick: () 
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
-                        .size(10.dp)
+                        .size(8.dp)
                         .clip(CircleShape)
-                        .background(Color.Red)
+                        .background(colorAndes)
                         .align(Alignment.CenterVertically)
                 )
             }

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
+import com.andes.bpo.ui.theme.PrimaryAndes
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -43,7 +44,7 @@ data class EvidenciaUiModel(
 @Composable
 fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-004801") {
     val context = LocalContext.current
-    val colorAndes = Color(0xFF225D49)
+    val colorAndes = PrimaryAndes
 
     var showDialog by remember { mutableStateOf(false) }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }

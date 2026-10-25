@@ -15,13 +15,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.ui.unit.sp
+import com.andes.bpo.ui.theme.PrimaryAndes
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecuperarContrasenaScreen(navController: NavController) {
     var correoORut by remember { mutableStateOf("") }
     var enviado by remember { mutableStateOf(false) }
 
-    val colorAndes = Color(0xFF1E40AF)
+    val colorAndes = PrimaryAndes
 
     Scaffold(
         topBar = {

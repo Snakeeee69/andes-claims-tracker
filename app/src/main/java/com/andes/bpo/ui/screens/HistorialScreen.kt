@@ -3,12 +3,10 @@ package com.andes.bpo.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.andes.bpo.ui.theme.PrimaryAndes
 
 data class GestionUiModel(
     val id: Int,
@@ -31,7 +30,7 @@ data class GestionUiModel(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistorialScreen(navController: NavController, siniestroId: String = "SIN-26-004801") {
-    val colorAndes = Color(0xFF1E40AF)
+    val colorAndes = PrimaryAndes
 
     val historialMock = remember {
         listOf(
@@ -115,12 +114,10 @@ fun HistorialItem(gestion: GestionUiModel, colorAndes: Color, isLastItem: Boolea
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
     ) {
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.width(30.dp)
         ) {
-
             Box(
                 modifier = Modifier
                     .size(14.dp)
@@ -168,7 +165,7 @@ fun HistorialItem(gestion: GestionUiModel, colorAndes: Color, isLastItem: Boolea
                     Text(
                         text = gestion.descripcion,
                         fontSize = 14.sp,
-                        color = Color(0xFF374151),
+                        color = Color(0xFF263C35),
                         lineHeight = 18.sp
                     )
                 }
