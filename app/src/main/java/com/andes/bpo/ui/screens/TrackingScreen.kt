@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -59,7 +58,7 @@ fun TrackingScreen(
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
                                 color = PrimaryAndes,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(30.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
@@ -72,9 +71,9 @@ fun TrackingScreen(
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "andes",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp,
+                                text = "Andes BPO",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 20.sp,
                                 color = PrimaryAndes
                             )
                         }
@@ -88,7 +87,7 @@ fun TrackingScreen(
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
-                                        text = "MV",
+                                        text = "CR",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PrimaryAndes
@@ -131,7 +130,7 @@ fun TrackingScreen(
                     NavigationBarItem(
                         selected = false,
                         onClick = { navController.navigate("notificaciones") },
-                        icon = { Icon(Icons.Default.Notifications, contentDescription = "Notificaciones") },
+                        icon = { Icon(Icons.Default.Notifications, contentDescription = "Avisos") },
                         label = { Text("Avisos", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
                             unselectedIconColor = Color.Gray,
@@ -140,9 +139,9 @@ fun TrackingScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { navController.navigate("evidencia") },
-                        icon = { Icon(Icons.Default.Description, contentDescription = "Evidencia") },
-                        label = { Text("Evidencias", fontSize = 11.sp) },
+                        onClick = { navController.navigate("ayuda") },
+                        icon = { Icon(Icons.Default.HelpOutline, contentDescription = "Centro de Ayuda") },
+                        label = { Text("Ayuda", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
                             unselectedIconColor = Color.Gray,
                             unselectedTextColor = Color.Gray
@@ -159,6 +158,20 @@ fun TrackingScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
+                Text(
+                    text = "¡Hola, Camila! 👋",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF263C35)
+                )
+                Text(
+                    text = "Revisa aquí el avance y detalle de tu caso en tiempo real.",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = PrimaryAndes),
@@ -243,28 +256,15 @@ fun TrackingScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
-                        onClick = { navController.navigate("evidencia") },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
-                    ) {
-                        Icon(Icons.Filled.Description, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Evidencias", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-
-                    Button(
-                        onClick = { navController.navigate("historial") },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
-                    ) {
-                        Icon(Icons.Filled.History, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Historial", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
+                Button(
+                    onClick = { navController.navigate("evidencia") },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
+                ) {
+                    Icon(Icons.Filled.Description, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Ver / Adjuntar Evidencias", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
