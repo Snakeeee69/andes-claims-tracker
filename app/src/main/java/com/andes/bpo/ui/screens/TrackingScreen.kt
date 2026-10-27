@@ -82,7 +82,7 @@ fun TrackingScreen(
                             if (uiState.numeroSiniestro.isNotEmpty() && uiState.estadoActual < 4) {
                                 showAlertaSiniestroActivo = true
                             } else {
-                                navController.navigate("nuevo_siniestro")
+                                navController.navigate("nuevo_siniestro/$rut")
                             }
                         }) {
                             Icon(
@@ -131,7 +131,7 @@ fun TrackingScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { navController.navigate("historial") },
+                        onClick = { navController.navigate("historial/$rut") },
                         icon = { Icon(Icons.Default.Folder, contentDescription = "Mis Siniestros") },
                         label = { Text("Siniestros", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
@@ -141,7 +141,7 @@ fun TrackingScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { navController.navigate("notificaciones") },
+                        onClick = { navController.navigate("notificaciones/$rut") },
                         icon = { Icon(Icons.Default.Notifications, contentDescription = "Avisos") },
                         label = { Text("Avisos", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
@@ -329,7 +329,7 @@ fun TrackingScreen(
                             )
                             Spacer(modifier = Modifier.height(20.dp))
                             Button(
-                                onClick = { navController.navigate("nuevo_siniestro") },
+                                onClick = { navController.navigate("nuevo_siniestro/$rut") },
                                 modifier = Modifier.fillMaxWidth().height(48.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
@@ -353,7 +353,7 @@ fun TrackingScreen(
                         Text("ℹ️", fontSize = 18.sp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Te notifiedaremos de inmediato ante cualquier cambio de estado. No necesitas llamar ni visitar una oficina.",
+                            text = "Te notificaremos de inmediato ante cualquier cambio de estado. No necesitas llamar ni visitar una oficina.",
                             color = PrimaryAndes,
                             fontSize = 12.sp,
                             lineHeight = 16.sp

@@ -29,31 +29,45 @@ data class GestionUiModel(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistorialScreen(navController: NavController, siniestroId: String = "SIN-26-004801") {
+fun HistorialScreen(navController: NavController, rut: String = "158423715") {
     val colorAndes = PrimaryAndes
+    val rutLimpio = rut.replace(".", "").replace("-", "")
 
-    val historialMock = remember {
-        listOf(
-            GestionUiModel(
-                3,
-                "18 ago 2026 • 14:20",
-                "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.",
-                "En evaluación"
-            ),
-            GestionUiModel(
-                2,
-                "17 ago 2026 • 09:15",
-                "Se asignó la liquidadora Paulina F. al caso.",
-                "En evaluación"
-            ),
-            GestionUiModel(
-                1,
-                "16 ago 2026 • 10:30",
-                "Siniestro reportado e ingresado al sistema de Andes BPO.",
-                "Recibido"
+    val historialMock = remember(rutLimpio) {
+        if (rutLimpio == "158423715") {
+            listOf(
+                GestionUiModel(
+                    3,
+                    "18 ago 2026 • 14:20",
+                    "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.",
+                    "En evaluación"
+                ),
+                GestionUiModel(
+                    2,
+                    "17 ago 2026 • 09:15",
+                    "Se asignó la liquidadora Paulina F. al caso.",
+                    "En evaluación"
+                ),
+                GestionUiModel(
+                    1,
+                    "16 ago 2026 • 10:30",
+                    "Siniestro reportado e ingresado al sistema de Andes BPO.",
+                    "Recibido"
+                )
             )
-        )
+        } else {
+            listOf(
+                GestionUiModel(
+                    1,
+                    "Hoy",
+                    "Siniestro reportado e ingresado al sistema de Andes BPO.",
+                    "Recibido"
+                )
+            )
+        }
     }
+
+    val siniestroIdText = if (rutLimpio == "158423715") "SIN-26-004801" else "Nuevo Caso"
 
     Scaffold(
         topBar = {
@@ -61,7 +75,7 @@ fun HistorialScreen(navController: NavController, siniestroId: String = "SIN-26-
                 title = {
                     Column {
                         Text("Historial de Gestiones", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(siniestroId, fontSize = 14.sp, color = Color.Gray)
+                        Text(siniestroIdText, fontSize = 14.sp, color = Color.Gray)
                     }
                 },
                 navigationIcon = {

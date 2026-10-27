@@ -15,18 +15,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.andes.bpo.data.local.entity.SiniestroEntity
 import com.andes.bpo.ui.theme.PrimaryAndes
+import com.andes.bpo.viewmodel.NuevoSiniestroViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+fun formatearFechaInput(input: String): String {
+    val digitos = input.filter { it.isDigit() }.take(8)
+    val sb = StringBuilder()
+    for (i in digitos.indices) {
+        if (i == 2 || i == 4) {
+            sb.append('/')
+        }
+        sb.append(digitos[i])
+    }
+    return sb.toString()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevoSiniestroScreen(
     navController: NavController,
-    onGuardarSiniestro: (SiniestroEntity) -> Unit = {}
+    rut: String,
+    viewModel: NuevoSiniestroViewModel = viewModel()
 ) {
     val colorAndes = PrimaryAndes
     val context = LocalContext.current
+
+    val rutLimpio = rut.replace(".", "").replace("-", "")
+    val idAseguradoActual = if (rutLimpio == "158423715") 1 else 2
 
     var compania by remember { mutableStateOf("") }
     var numeroPoliza by remember { mutableStateOf("") }
@@ -106,11 +127,11 @@ fun NuevoSiniestroScreen(
 
                 OutlinedTextField(
                     value = fechaOcurrencia,
-                    onValueChange = { if (it.length <= 10) fechaOcurrencia = it },
-                    label = { Text("Fecha (DD/MM/AAAA)") },
+                    onValueChange = { fechaOcurrencia = formatearFechaInput(it) },
+                    label = { Text("Fecha Ocurrencia (DD/MM/AAAA)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    placeholder = { Text("Ej: 15/05/2026") },
+                    placeholder = { Text("15/05/2026") },
                     singleLine = true
                 )
 
@@ -143,28 +164,31 @@ fun NuevoSiniestroScreen(
 
                 Button(
                     onClick = {
-                        if (compania.isBlank() || numeroPoliza.isBlank() || descripcion.isBlank() || fechaOcurrencia.isBlank()) {
-                            errorMensaje = "Por favor completa todos los campos principales."
+                        if (compania.isBlank() || numeroPoliza.isBlank() || descripcion.isBlank() || fechaOcurrencia.length < 10) {
+                            errorMensaje = "Por favor completa la fecha completa (DD/MM/AAAA) y los datos principales."
                         } else {
+                            val fechaActualFormateada = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+
                             val nuevoSiniestro = SiniestroEntity(
                                 numero = "SIN-26-${(100000..999999).random()}",
-                                idAsegurado = 2,
+                                idAsegurado = idAseguradoActual,
                                 companiaNombre = compania,
                                 numeroPoliza = numeroPoliza,
                                 tipoSiniestroNombre = tipoSiniestro,
                                 modeloVehiculo = modeloVehiculo,
                                 fechaOcurrencia = fechaOcurrencia,
-                                fechaReporte = "Hoy",
+                                fechaReporte = fechaActualFormateada,
                                 comunaNombre = comuna,
                                 descripcion = descripcion,
                                 etapaNombre = "Recibido",
                                 liquidadorNombre = "Por asignar",
-                                proximoPasoTexto = "Revisión inicial"
+                                proximoPasoTexto = "Revisión inicial de antecedentes"
                             )
-                            onGuardarSiniestro(nuevoSiniestro)
 
-                            Toast.makeText(context, "Siniestro creado exitosamente", Toast.LENGTH_LONG).show()
-                            navController.popBackStack()
+                            viewModel.guardarSiniestro(nuevoSiniestro) {
+                                Toast.makeText(context, "Siniestro creado exitosamente", Toast.LENGTH_LONG).show()
+                                navController.popBackStack()
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),

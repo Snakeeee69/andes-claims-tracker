@@ -36,20 +36,23 @@ fun AppNavigation() {
             EvidenciaScreen(navController = navController)
         }
 
-        composable("historial") {
-            HistorialScreen(navController = navController)
+        composable("historial/{rut}") { backStackEntry ->
+            val rutUsuario = backStackEntry.arguments?.getString("rut") ?: ""
+            HistorialScreen(navController = navController, rut = rutUsuario)
         }
 
-        composable("notificaciones") {
-            NotificacionesScreen(navController = navController)
+        composable("notificaciones/{rut}") { backStackEntry ->
+            val rutUsuario = backStackEntry.arguments?.getString("rut") ?: ""
+            NotificacionesScreen(navController = navController, rut = rutUsuario)
         }
 
         composable("ayuda") {
             CentroAyudaScreen(navController = navController)
         }
 
-        composable("nuevo_siniestro") {
-            NuevoSiniestroScreen(navController = navController)
+        composable("nuevo_siniestro/{rut}") { backStackEntry ->
+            val rutUsuario = backStackEntry.arguments?.getString("rut") ?: ""
+            NuevoSiniestroScreen(navController = navController, rut = rutUsuario)
         }
     }
 }

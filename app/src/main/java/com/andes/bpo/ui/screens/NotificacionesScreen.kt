@@ -35,38 +35,52 @@ data class AvisoUiModel(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificacionesScreen(navController: NavController) {
+fun NotificacionesScreen(navController: NavController, rut: String = "158423715") {
     val colorAndes = PrimaryAndes
+    val rutLimpio = rut.replace(".", "").replace("-", "")
 
     var notificacionSeleccionada by remember { mutableStateOf<AvisoUiModel?>(null) }
 
-    val notificacionesMock = remember {
-        mutableStateListOf(
-            AvisoUiModel(
-                id = 1,
-                titulo = "Actualización de Estado",
-                mensaje = "Tu caso ha pasado a la etapa 'En evaluación'.",
-                fecha = "Hace 2 horas",
-                leido = false,
-                detalleExtendido = "El liquidador asignado ya revisó tus antecedentes y el siniestro SIN-26-004801 avanza según lo programado. Estaremos en contacto directo contigo para coordinar la inspección del vehículo si es necesario."
-            ),
-            AvisoUiModel(
-                id = 2,
-                titulo = "Documentación requerida",
-                mensaje = "Necesitamos que adjuntes una copia de tu carnet de identidad.",
-                fecha = "Ayer",
-                leido = false,
-                detalleExtendido = "Para agilizar la orden de reparación de tu vehículo (patente BJKR-94), por favor sube una fotografía por ambos lados de tu Cédula de Identidad vigente desde la pestaña 'Evidencias'."
-            ),
-            AvisoUiModel(
-                id = 3,
-                titulo = "Siniestro Ingresado",
-                mensaje = "Hemos recibido tu reporte de siniestro exitosamente.",
-                fecha = "16 ago",
-                leido = true,
-                detalleExtendido = "Tu reporte de siniestro ha sido registrado correctamente en la plataforma de Andes BPO. Tu número de gestión oficial para seguimiento es SIN-26-004801."
+    val notificacionesMock = remember(rutLimpio) {
+        if (rutLimpio == "158423715") {
+            mutableStateListOf(
+                AvisoUiModel(
+                    id = 1,
+                    titulo = "Actualización de Estado",
+                    mensaje = "Tu caso ha pasado a la etapa 'En evaluación'.",
+                    fecha = "Hace 2 horas",
+                    leido = false,
+                    detalleExtendido = "El liquidador asignado ya revisó tus antecedentes y el siniestro SIN-26-004801 avanza según lo programado. Estaremos en contacto directo contigo para coordinar la inspección del vehículo si es necesario."
+                ),
+                AvisoUiModel(
+                    id = 2,
+                    titulo = "Documentación requerida",
+                    mensaje = "Necesitamos que adjuntes una copia de tu carnet de identidad.",
+                    fecha = "Ayer",
+                    leido = false,
+                    detalleExtendido = "Para agilizar la orden de reparación de tu vehículo (patente BJKR-94), por favor sube una fotografía por ambos lados de tu Cédula de Identidad vigente desde la pestaña 'Evidencias'."
+                ),
+                AvisoUiModel(
+                    id = 3,
+                    titulo = "Siniestro Ingresado",
+                    mensaje = "Hemos recibido tu reporte de siniestro exitosamente.",
+                    fecha = "16 ago",
+                    leido = true,
+                    detalleExtendido = "Tu reporte de siniestro ha sido registrado correctamente en la plataforma de Andes BPO. Tu número de gestión oficial para seguimiento es SIN-26-004801."
+                )
             )
-        )
+        } else {
+            mutableStateListOf(
+                AvisoUiModel(
+                    id = 1,
+                    titulo = "Bienvenido a Andes BPO",
+                    mensaje = "Tu cuenta está habilitada para realizar nuevos reportes.",
+                    fecha = "Hoy",
+                    leido = false,
+                    detalleExtendido = "Bienvenido al portal de asegurados. Desde aquí podrás ingresar nuevas solicitudes de siniestro y seguir su tramitación en tiempo real."
+                )
+            )
+        }
     }
 
     if (notificacionSeleccionada != null) {
