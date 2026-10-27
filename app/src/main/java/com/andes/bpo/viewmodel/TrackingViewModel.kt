@@ -5,27 +5,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.andes.bpo.data.local.AppDatabase
 import com.andes.bpo.data.repository.SiniestroRepository
+import com.andes.bpo.model.TrackingUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
-data class TrackingUiState(
-    val isLoading: Boolean = true,
-    val numeroSiniestro: String = "",
-    val tipo: String = "",
-    val fechaOcurrencia: String = "",
-    val fechaReporte: String = "",
-    val patente: String = "",
-    val estadoActual: Int = 1,
-    val nombreLiquidador: String = "",
-    val empresaLiquidador: String = "",
-    val subtipo: String = "",
-    val modeloVehiculo: String = "",
-    val numeroPoliza: String = "",
-    val aseguradora: String = ""
-)
 
 class TrackingViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -37,18 +22,18 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
     init {
         val db = AppDatabase.getDatabase(application, viewModelScope)
         repository = SiniestroRepository(db.siniestroDao())
-        cargarDatosSiniestroDesdeRoom(idSiniestro = 1)
     }
 
     fun cargarDatosSiniestro(rut: String) {
-        cargarDatosSiniestroDesdeRoom(idSiniestro = 1)
-    }
+        val rutLimpio = rut.replace(".", "").replace("-", "")
+        val idUsuario = if (rutLimpio == "158423715") 1 else 2
 
-    fun cargarDatosSiniestroDesdeRoom(idSiniestro: Int) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            repository.getSiniestroPorId(idSiniestro).collectLatest { entity ->
+            repository.getSiniestrosPorUsuario(idUsuario).collectLatest { listaSiniestros ->
+                val entity = listaSiniestros.firstOrNull()
+
                 if (entity != null) {
                     val paso = when (entity.etapaNombre) {
                         "Recibido" -> 1
@@ -69,12 +54,16 @@ class TrackingViewModel(application: Application) : AndroidViewModel(application
                         nombreLiquidador = entity.liquidadorNombre ?: "Por asignar",
                         empresaLiquidador = entity.companiaNombre,
                         subtipo = entity.descripcion,
-                        modeloVehiculo = entity.comunaNombre,
+                        modeloVehiculo = entity.modeloVehiculo,
                         numeroPoliza = entity.numeroPoliza,
                         aseguradora = entity.companiaNombre
                     )
                 } else {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    _uiState.value = TrackingUiState(
+                        isLoading = false,
+                        numeroSiniestro = "",
+                        estadoActual = 0
+                    )
                 }
             }
         }

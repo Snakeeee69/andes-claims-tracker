@@ -12,6 +12,7 @@ data class SiniestroEntity(
     val companiaNombre: String,
     val numeroPoliza: String,
     val tipoSiniestroNombre: String,
+    val modeloVehiculo: String = "Suzuki Swift 2022",
     val fechaOcurrencia: String,
     val fechaReporte: String,
     val comunaNombre: String,

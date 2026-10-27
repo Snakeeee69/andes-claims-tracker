@@ -37,6 +37,10 @@ fun TrackingScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showAlertaSiniestroActivo by remember { mutableStateOf(false) }
 
+    val rutLimpio = rut.replace(".", "").replace("-", "")
+    val nombreUsuario = if (rutLimpio == "987654321") "Carlos" else "Camila"
+    val inicialesUsuario = if (rutLimpio == "987654321") "CP" else "CR"
+
     LaunchedEffect(rut) {
         viewModel.cargarDatosSiniestro(rut)
     }
@@ -46,7 +50,7 @@ fun TrackingScreen(
             CircularProgressIndicator(color = PrimaryAndes)
         }
     } else {
-        val textoEstado = when(uiState.estadoActual) {
+        val textoEstado = when (uiState.estadoActual) {
             1 -> "Recibido"
             2 -> "En evaluación"
             3 -> "En liquidación"
@@ -74,9 +78,7 @@ fun TrackingScreen(
                         }
                     },
                     actions = {
-
                         IconButton(onClick = {
-
                             if (uiState.numeroSiniestro.isNotEmpty() && uiState.estadoActual < 4) {
                                 showAlertaSiniestroActivo = true
                             } else {
@@ -97,7 +99,7 @@ fun TrackingScreen(
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
-                                        text = "CR",
+                                        text = inicialesUsuario,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PrimaryAndes
@@ -169,7 +171,7 @@ fun TrackingScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "¡Hola, Camila!",
+                    text = "¡Hola, $nombreUsuario!",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF263C35)
@@ -182,115 +184,161 @@ fun TrackingScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = PrimaryAndes),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                if (uiState.numeroSiniestro.isNotEmpty()) {
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = PrimaryAndes),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "MI SINIESTRO ACTIVO",
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                BadgeEstado(textoEstado)
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
                             Text(
-                                text = "MI SINIESTRO ACTIVO",
-                                color = Color.White.copy(alpha = 0.8f),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
+                                text = uiState.numeroSiniestro,
+                                color = Color.White,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold
                             )
 
-                            BadgeEstado(textoEstado)
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                InfoBoxItem(titulo = "Tipo", valor = uiState.tipo)
+                                InfoBoxItem(titulo = "Fecha ocurrencia", valor = uiState.fechaOcurrencia)
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                InfoBoxItem(titulo = "Vehículo", valor = uiState.patente)
+                                InfoBoxItem(titulo = "Reporte", valor = uiState.fechaReporte)
+                            }
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            StepperSiniestro(pasoActual = uiState.estadoActual)
                         }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Text(
-                            text = uiState.numeroSiniestro,
-                            color = Color.White,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            InfoBoxItem(titulo = "Tipo", valor = uiState.tipo)
-                            InfoBoxItem(titulo = "Fecha ocurrencia", valor = uiState.fechaOcurrencia)
-                        }
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            InfoBoxItem(titulo = "Vehículo", valor = uiState.patente)
-                            InfoBoxItem(titulo = "Reporte", valor = uiState.fechaReporte)
-                        }
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        StepperSiniestro(pasoActual = uiState.estadoActual)
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = PrimaryAndes.copy(alpha = 0.15f),
-                            modifier = Modifier.size(48.dp)
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = uiState.nombreLiquidador.take(1).uppercase(),
-                                    color = PrimaryAndes,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                )
+                            Surface(
+                                shape = CircleShape,
+                                color = PrimaryAndes.copy(alpha = 0.15f),
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = uiState.nombreLiquidador.take(1).uppercase(),
+                                        color = PrimaryAndes,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text("Liquidador/a asignado/a", color = Color.Gray, fontSize = 12.sp)
+                                Text(uiState.nombreLiquidador, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF263C35))
+                                Text(uiState.empresaLiquidador, color = Color.Gray, fontSize = 12.sp)
                             }
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text("Liquidador/a asignado/a", color = Color.Gray, fontSize = 12.sp)
-                            Text(uiState.nombreLiquidador, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF263C35))
-                            Text(uiState.empresaLiquidador, color = Color.Gray, fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { navController.navigate("evidencia") },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
+                    ) {
+                        Icon(Icons.Filled.Description, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Ver / Adjuntar Evidencias", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Detalles del siniestro", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF263C35))
+                            Spacer(modifier = Modifier.height(12.dp))
+                            DetalleFila("Subtipo", uiState.subtipo)
+                            DetalleFila("Modelo", uiState.modeloVehiculo)
+                            DetalleFila("Póliza", uiState.numeroPoliza)
+                            DetalleFila("Aseguradora", uiState.aseguradora)
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = { navController.navigate("evidencia") },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
-                ) {
-                    Icon(Icons.Filled.Description, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Ver / Adjuntar Evidencias", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Detalles del siniestro", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF263C35))
-                        Spacer(modifier = Modifier.height(12.dp))
-                        DetalleFila("Subtipo", uiState.subtipo)
-                        DetalleFila("Modelo", uiState.modeloVehiculo)
-                        DetalleFila("Póliza", uiState.numeroPoliza)
-                        DetalleFila("Aseguradora", uiState.aseguradora)
+                } else {
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FolderOpen,
+                                contentDescription = null,
+                                tint = PrimaryAndes,
+                                modifier = Modifier.size(56.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Sin siniestros activos",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color(0xFF263C35)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "No registras eventos en curso asociados a tu cuenta. Si tuviste un accidente o daño vehicular, reporta tu caso aquí.",
+                                fontSize = 13.sp,
+                                color = Color.Gray,
+                                lineHeight = 18.sp
+                            )
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Button(
+                                onClick = { navController.navigate("nuevo_siniestro") },
+                                modifier = Modifier.fillMaxWidth().height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Reportar Nuevo Siniestro", fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
 
@@ -305,7 +353,7 @@ fun TrackingScreen(
                         Text("ℹ️", fontSize = 18.sp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Te notificaremos de inmediato ante cualquier cambio de estado. No necesitas llamar ni visitar una oficina.",
+                            text = "Te notifiedaremos de inmediato ante cualquier cambio de estado. No necesitas llamar ni visitar una oficina.",
                             color = PrimaryAndes,
                             fontSize = 12.sp,
                             lineHeight = 16.sp
@@ -315,6 +363,7 @@ fun TrackingScreen(
             }
         }
     }
+
     if (showAlertaSiniestroActivo) {
         AlertDialog(
             onDismissRequest = { showAlertaSiniestroActivo = false },
@@ -335,6 +384,7 @@ fun TrackingScreen(
             }
         )
     }
+
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },

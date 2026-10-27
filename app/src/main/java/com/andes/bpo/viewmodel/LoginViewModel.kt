@@ -40,14 +40,15 @@ class LoginViewModel : ViewModel() {
             delay(1500)
 
             val rutLimpio = rutActual.replace(".", "").replace("-", "")
+            val rutsValidos = listOf("158423715", "987654321")
 
-            if (rutActual == "158423715" && contrasenaActual == "123456") {
+            if (rutLimpio in rutsValidos && contrasenaActual == "123456") {
                 _uiState.update { it.copy(isLoading = false, isLoginSuccessful = true) }
             } else {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = "RUT o contraseña incorrectos. Prueba RUT: 15.842.371-5 y Pass: 123456"
+                        error = "RUT o contraseña incorrectos. Usa RUT: 15.842.371-5 o 9.876.543-2 y Pass: 123456"
                     )
                 }
             }

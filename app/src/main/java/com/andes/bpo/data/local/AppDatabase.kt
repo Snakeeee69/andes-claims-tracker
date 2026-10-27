@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
         GestionEntity::class,
         AvisoEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,32 +38,60 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "andes_siniestros_db"
-                ).addCallback(object : RoomDatabase.Callback() {
-                    override fun onCreate(db: SupportSQLiteDatabase) {
-                        super.onCreate(db)
-                        scope.launch(Dispatchers.IO) {
-                            instance.siniestroDao().insertSiniestrosIniciales(
-                                listOf(
-                                    SiniestroEntity(
-                                        idSiniestro = 1,
-                                        numero = "SIN-26-004801",
-                                        idAsegurado = 1,
-                                        companiaNombre = "Seguros Cordillera",
-                                        numeroPoliza = "POL-ASG01-77812",
-                                        tipoSiniestroNombre = "Vehículo – choque o colisión",
-                                        fechaOcurrencia = "02-09-2026",
-                                        fechaReporte = "02-09-2026 18:40",
-                                        comunaNombre = "Maipú",
-                                        descripcion = "Colisión en intersección. Daños en parachoques delantero.",
-                                        etapaNombre = "En liquidación",
-                                        liquidadorNombre = "Paulina F. – Equipo Vehículos",
-                                        proximoPasoTexto = "Tenemos todo lo necesario. Estamos definiendo la resolución con tu compañía de seguros."
+                )
+                    .fallbackToDestructiveMigration()
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            scope.launch(Dispatchers.IO) {
+                                val dao = instance.siniestroDao()
+                                dao.insertSiniestrosIniciales(
+                                    listOf(
+                                        SiniestroEntity(
+                                            idSiniestro = 1,
+                                            numero = "SIN-26-004801",
+                                            idAsegurado = 1,
+                                            companiaNombre = "Seguros Cordillera",
+                                            numeroPoliza = "POL-ASG01-77812",
+                                            tipoSiniestroNombre = "Vehículo – choque o colisión",
+                                            modeloVehiculo = "Suzuki Swift 2022",
+                                            fechaOcurrencia = "02-09-2026",
+                                            fechaReporte = "02-09-2026 18:40",
+                                            comunaNombre = "Maipú",
+                                            descripcion = "Colisión en intersección. Daños en parachoques delantero.",
+                                            etapaNombre = "En liquidación",
+                                            liquidadorNombre = "Paulina F. – Equipo Vehículos",
+                                            proximoPasoTexto = "Tenemos todo lo necesario. Estamos definiendo la resolución con tu compañía de seguros."
+                                        )
                                     )
                                 )
-                            )
+                                dao.insertGestion(
+                                    GestionEntity(
+                                        idSiniestro = 1,
+                                        fechaHora = "18 ago 2026 • 14:20",
+                                        descripcion = "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.",
+                                        responsable = "Paulina F."
+                                    )
+                                )
+                                dao.insertGestion(
+                                    GestionEntity(
+                                        idSiniestro = 1,
+                                        fechaHora = "17 ago 2026 • 09:15",
+                                        descripcion = "Se asignó la liquidadora Paulina F. al caso.",
+                                        responsable = "Sistema"
+                                    )
+                                )
+                                dao.insertGestion(
+                                    GestionEntity(
+                                        idSiniestro = 1,
+                                        fechaHora = "16 ago 2026 • 10:30",
+                                        descripcion = "Siniestro reportado e ingresado al sistema de Andes BPO.",
+                                        responsable = "Asegurado"
+                                    )
+                                )
+                            }
                         }
-                    }
-                }).build()
+                    }).build()
                 INSTANCE = instance
                 instance
             }

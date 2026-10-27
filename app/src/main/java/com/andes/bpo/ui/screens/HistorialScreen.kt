@@ -34,17 +34,20 @@ fun HistorialScreen(navController: NavController, siniestroId: String = "SIN-26-
 
     val historialMock = remember {
         listOf(
-            GestionUiModel(3,
+            GestionUiModel(
+                3,
                 "18 ago 2026 • 14:20",
                 "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.",
                 "En evaluación"
             ),
-            GestionUiModel(2,
+            GestionUiModel(
+                2,
                 "17 ago 2026 • 09:15",
-                "Se asignó el liquidador María González al caso.",
+                "Se asignó la liquidadora Paulina F. al caso.",
                 "En evaluación"
             ),
-            GestionUiModel(1,
+            GestionUiModel(
+                1,
                 "16 ago 2026 • 10:30",
                 "Siniestro reportado e ingresado al sistema de Andes BPO.",
                 "Recibido"

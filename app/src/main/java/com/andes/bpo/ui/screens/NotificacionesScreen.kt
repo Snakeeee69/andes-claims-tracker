@@ -24,7 +24,6 @@ import com.andes.bpo.ui.theme.BackgroundAndes
 import com.andes.bpo.ui.theme.MintAndes
 import com.andes.bpo.ui.theme.PrimaryAndes
 
-
 data class AvisoUiModel(
     val id: Int,
     val titulo: String,
@@ -39,7 +38,6 @@ data class AvisoUiModel(
 fun NotificacionesScreen(navController: NavController) {
     val colorAndes = PrimaryAndes
 
-    // Estado para controlar qué notificación se está viendo en detalle
     var notificacionSeleccionada by remember { mutableStateOf<AvisoUiModel?>(null) }
 
     val notificacionesMock = remember {

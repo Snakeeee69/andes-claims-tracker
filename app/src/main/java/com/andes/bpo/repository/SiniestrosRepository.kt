@@ -6,22 +6,32 @@ import kotlinx.coroutines.delay
 class SiniestrosRepository {
 
     suspend fun obtenerSiniestroPorRut(rut: String): TrackingUiState {
-        delay(1500) // Simula el tiempo de carga de internet
+        delay(1500)
 
-        return TrackingUiState(
-            numeroSiniestro = "SIN-2026-08471",
-            estadoActual = 2,
-            tipo = "Accidente vehicular",
-            patente = "BJKR-94",
-            fechaOcurrencia = "15 ago 2026",
-            fechaReporte = "16 ago 2026",
-            nombreLiquidador = "María González",
-            empresaLiquidador = "Liquidaciones Andes · Andes SpA",
-            subtipo = "Colisión con daños materiales",
-            modeloVehiculo = "Toyota Yaris 2022",
-            numeroPoliza = "POL-88231-VH",
-            aseguradora = "Aseguradora del Sur S.A.",
-            isLoading = false
-        )
+        val rutLimpio = rut.replace(".", "").replace("-", "")
+
+        return if (rutLimpio == "158423715") {
+            TrackingUiState(
+                numeroSiniestro = "SIN-26-004801",
+                estadoActual = 3,
+                tipo = "Vehículo – choque o colisión",
+                patente = "BJKR-94",
+                fechaOcurrencia = "02-09-2026",
+                fechaReporte = "02-09-2026 18:40",
+                nombreLiquidador = "Paulina F. – Equipo Vehículos",
+                empresaLiquidador = "Seguros Cordillera",
+                subtipo = "Colisión en intersección. Daños en parachoques delantero.",
+                modeloVehiculo = "Suzuki Swift 2022",
+                numeroPoliza = "POL-ASG01-77812",
+                aseguradora = "Seguros Cordillera",
+                isLoading = false
+            )
+        } else {
+            TrackingUiState(
+                numeroSiniestro = "",
+                estadoActual = 0,
+                isLoading = false
+            )
+        }
     }
 }

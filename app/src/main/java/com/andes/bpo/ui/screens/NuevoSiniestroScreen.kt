@@ -31,6 +31,7 @@ fun NuevoSiniestroScreen(
     var compania by remember { mutableStateOf("") }
     var numeroPoliza by remember { mutableStateOf("") }
     var tipoSiniestro by remember { mutableStateOf("Colisión") }
+    var modeloVehiculo by remember { mutableStateOf("Toyota Yaris 2023") }
     var fechaOcurrencia by remember { mutableStateOf("") }
     var comuna by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
@@ -80,7 +81,6 @@ fun NuevoSiniestroScreen(
 
                 OutlinedTextField(
                     value = numeroPoliza,
-
                     onValueChange = { if (it.length <= 12) numeroPoliza = it },
                     label = { Text("Número de Póliza (Solo números)") },
                     modifier = Modifier.fillMaxWidth(),
@@ -97,15 +97,20 @@ fun NuevoSiniestroScreen(
                 )
 
                 OutlinedTextField(
-                    value = fechaOcurrencia,
-                    onValueChange = {
+                    value = modeloVehiculo,
+                    onValueChange = { modeloVehiculo = it },
+                    label = { Text("Modelo de Vehículo") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
 
-                        if (it.length <= 10) fechaOcurrencia = it
-                    },
+                OutlinedTextField(
+                    value = fechaOcurrencia,
+                    onValueChange = { if (it.length <= 10) fechaOcurrencia = it },
                     label = { Text("Fecha (DD/MM/AAAA)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    placeholder = { Text("Ej: 15/05/2024") },
+                    placeholder = { Text("Ej: 15/05/2026") },
                     singleLine = true
                 )
 
@@ -143,10 +148,11 @@ fun NuevoSiniestroScreen(
                         } else {
                             val nuevoSiniestro = SiniestroEntity(
                                 numero = "SIN-26-${(100000..999999).random()}",
-                                idAsegurado = 1,
+                                idAsegurado = 2,
                                 companiaNombre = compania,
                                 numeroPoliza = numeroPoliza,
                                 tipoSiniestroNombre = tipoSiniestro,
+                                modeloVehiculo = modeloVehiculo,
                                 fechaOcurrencia = fechaOcurrencia,
                                 fechaReporte = "Hoy",
                                 comunaNombre = comuna,
@@ -157,9 +163,7 @@ fun NuevoSiniestroScreen(
                             )
                             onGuardarSiniestro(nuevoSiniestro)
 
-
                             Toast.makeText(context, "Siniestro creado exitosamente", Toast.LENGTH_LONG).show()
-
                             navController.popBackStack()
                         }
                     },

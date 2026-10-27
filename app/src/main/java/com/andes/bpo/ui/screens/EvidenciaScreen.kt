@@ -1,5 +1,7 @@
 package com.andes.bpo.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -25,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.andes.bpo.ui.theme.PrimaryAndes
@@ -101,6 +104,39 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
         }
     }
 
+    fun lanzarCamaraConFoto() {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val imageFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", context.externalCacheDir)
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            imageFile
+        )
+        tempCameraUri = uri
+        cameraLauncher.launch(uri)
+    }
+
+    val permisoCamaraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { esConcedido ->
+        if (esConcedido) {
+            lanzarCamaraConFoto()
+        }
+    }
+
+    fun tomarFotoConPermiso() {
+        val tienePermiso = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (tienePermiso) {
+            lanzarCamaraConFoto()
+        } else {
+            permisoCamaraLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -132,31 +168,31 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
         }
     ) { paddingValues ->
         AnimacionEntrada {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Documentos y fotografías de respaldo asociadas a tu siniestro.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 80.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
             ) {
-                items(evidenciasMock) { evidencia ->
-                    EvidenciaItemCard(evidencia = evidencia, colorAndes = colorAndes)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Documentos y fotografías de respaldo asociadas a tu siniestro.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(evidenciasMock) { evidencia ->
+                        EvidenciaItemCard(evidencia = evidencia, colorAndes = colorAndes)
+                    }
                 }
             }
         }
-    }
 
         if (showDialog) {
             AlertDialog(
@@ -167,15 +203,7 @@ fun EvidenciaScreen(navController: NavController, siniestroId: String = "SIN-26-
                     TextButton(
                         onClick = {
                             showDialog = false
-                            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                            val imageFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", context.externalCacheDir)
-                            val uri = FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.fileprovider",
-                                imageFile
-                            )
-                            tempCameraUri = uri
-                            cameraLauncher.launch(uri)
+                            tomarFotoConPermiso()
                         }
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
