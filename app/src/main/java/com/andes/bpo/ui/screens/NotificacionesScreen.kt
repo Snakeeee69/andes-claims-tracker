@@ -24,12 +24,14 @@ import com.andes.bpo.ui.theme.BackgroundAndes
 import com.andes.bpo.ui.theme.MintAndes
 import com.andes.bpo.ui.theme.PrimaryAndes
 
+
 data class AvisoUiModel(
     val id: Int,
     val titulo: String,
     val mensaje: String,
     val fecha: String,
-    var leido: Boolean
+    var leido: Boolean,
+    val detalleExtendido: String = ""
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,26 +39,94 @@ data class AvisoUiModel(
 fun NotificacionesScreen(navController: NavController) {
     val colorAndes = PrimaryAndes
 
+    // Estado para controlar qué notificación se está viendo en detalle
+    var notificacionSeleccionada by remember { mutableStateOf<AvisoUiModel?>(null) }
+
     val notificacionesMock = remember {
         mutableStateListOf(
-            AvisoUiModel(1,
-                "Actualización de Estado",
-                "Tu caso ha pasado a la etapa 'En evaluación'.",
-                "Hace 2 horas",
-                false
+            AvisoUiModel(
+                id = 1,
+                titulo = "Actualización de Estado",
+                mensaje = "Tu caso ha pasado a la etapa 'En evaluación'.",
+                fecha = "Hace 2 horas",
+                leido = false,
+                detalleExtendido = "El liquidador asignado ya revisó tus antecedentes y el siniestro SIN-26-004801 avanza según lo programado. Estaremos en contacto directo contigo para coordinar la inspección del vehículo si es necesario."
             ),
-            AvisoUiModel(2,
-                "Documentación requerida",
-                "Necesitamos que adjuntes una copia de tu carnet de identidad.",
-                "Ayer",
-                false
+            AvisoUiModel(
+                id = 2,
+                titulo = "Documentación requerida",
+                mensaje = "Necesitamos que adjuntes una copia de tu carnet de identidad.",
+                fecha = "Ayer",
+                leido = false,
+                detalleExtendido = "Para agilizar la orden de reparación de tu vehículo (patente BJKR-94), por favor sube una fotografía por ambos lados de tu Cédula de Identidad vigente desde la pestaña 'Evidencias'."
             ),
-            AvisoUiModel(3,
-                "Siniestro Ingresado",
-                "Hemos recibido tu reporte de siniestro exitosamente.",
-                "16 ago",
-                true
+            AvisoUiModel(
+                id = 3,
+                titulo = "Siniestro Ingresado",
+                mensaje = "Hemos recibido tu reporte de siniestro exitosamente.",
+                fecha = "16 ago",
+                leido = true,
+                detalleExtendido = "Tu reporte de siniestro ha sido registrado correctamente en la plataforma de Andes BPO. Tu número de gestión oficial para seguimiento es SIN-26-004801."
             )
+        )
+    }
+
+    if (notificacionSeleccionada != null) {
+        AlertDialog(
+            onDismissRequest = { notificacionSeleccionada = null },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(MintAndes, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Notifications,
+                        contentDescription = null,
+                        tint = colorAndes,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = notificacionSeleccionada!!.titulo,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF263C35)
+                )
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = notificacionSeleccionada!!.fecha,
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = notificacionSeleccionada!!.detalleExtendido,
+                        fontSize = 14.sp,
+                        color = Color.DarkGray,
+                        lineHeight = 20.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { notificacionSeleccionada = null }
+                ) {
+                    Text(
+                        text = "Entendido",
+                        color = colorAndes,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color.White
         )
     }
 
@@ -82,27 +152,28 @@ fun NotificacionesScreen(navController: NavController) {
         containerColor = BackgroundAndes
     ) { paddingValues ->
         AnimacionEntrada {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 12.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
             ) {
-                items(notificacionesMock) { notificacion ->
-                    NotificacionItem(notificacion = notificacion, colorAndes = colorAndes) {
-                        val index = notificacionesMock.indexOf(notificacion)
-                        if (index != -1) {
-                            notificacionesMock[index] = notificacion.copy(leido = true)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp)
+                ) {
+                    items(notificacionesMock) { notificacion ->
+                        NotificacionItem(notificacion = notificacion, colorAndes = colorAndes) {
+                            val index = notificacionesMock.indexOf(notificacion)
+                            if (index != -1) {
+                                notificacionesMock[index] = notificacion.copy(leido = true)
+                                notificacionSeleccionada = notificacionesMock[index]
+                            }
                         }
                     }
                 }
             }
-        }
         }
     }
 }
