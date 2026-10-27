@@ -35,6 +35,7 @@ fun TrackingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showAlertaSiniestroActivo by remember { mutableStateOf(false) }
 
     LaunchedEffect(rut) {
         viewModel.cargarDatosSiniestro(rut)
@@ -73,6 +74,21 @@ fun TrackingScreen(
                         }
                     },
                     actions = {
+
+                        IconButton(onClick = {
+
+                            if (uiState.numeroSiniestro.isNotEmpty() && uiState.estadoActual < 4) {
+                                showAlertaSiniestroActivo = true
+                            } else {
+                                navController.navigate("nuevo_siniestro")
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Nuevo Siniestro",
+                                tint = PrimaryAndes
+                            )
+                        }
                         IconButton(onClick = { showLogoutDialog = true }) {
                             Surface(
                                 shape = CircleShape,
@@ -299,7 +315,26 @@ fun TrackingScreen(
             }
         }
     }
-
+    if (showAlertaSiniestroActivo) {
+        AlertDialog(
+            onDismissRequest = { showAlertaSiniestroActivo = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Warning, contentDescription = null, tint = Color.Red)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Siniestro en curso", fontWeight = FontWeight.Bold, color = Color.Red)
+                }
+            },
+            text = {
+                Text("Ya posees el siniestro ${uiState.numeroSiniestro} en proceso de evaluación. Para añadir antecedentes o reportar un nuevo evento de la póliza, contacta directamente a tu liquidador asignado.")
+            },
+            confirmButton = {
+                TextButton(onClick = { showAlertaSiniestroActivo = false }) {
+                    Text("Entendido", fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },

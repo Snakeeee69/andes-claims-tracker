@@ -9,6 +9,7 @@ import com.andes.bpo.ui.screens.EvidenciaScreen
 import com.andes.bpo.ui.screens.HistorialScreen
 import com.andes.bpo.ui.screens.LoginScreen
 import com.andes.bpo.ui.screens.NotificacionesScreen
+import com.andes.bpo.ui.screens.NuevoSiniestroScreen
 import com.andes.bpo.ui.screens.RecuperarContrasenaScreen
 import com.andes.bpo.ui.screens.TrackingScreen
 
@@ -45,6 +46,10 @@ fun AppNavigation() {
 
         composable("ayuda") {
             CentroAyudaScreen(navController = navController)
+        }
+
+        composable("nuevo_siniestro") {
+            NuevoSiniestroScreen(navController = navController)
         }
     }
 }
