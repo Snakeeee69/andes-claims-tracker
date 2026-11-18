@@ -25,6 +25,7 @@ import com.andes.bpo.ui.theme.BackgroundAndes
 import com.andes.bpo.ui.theme.MintAndes
 import com.andes.bpo.ui.theme.PrimaryAndes
 import com.andes.bpo.viewmodel.TrackingViewModel
+import com.andes.bpo.utils.SesionUsuario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,11 +36,9 @@ fun TrackingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var showAlertaSiniestroActivo by remember { mutableStateOf(false) }
 
-    val rutLimpio = rut.replace(".", "").replace("-", "")
-    val nombreUsuario = if (rutLimpio == "987654321") "Carlos" else "Camila"
-    val inicialesUsuario = if (rutLimpio == "987654321") "CP" else "CR"
+    val nombreUsuario = uiState.nombreUsuario
+    val inicialesUsuario = uiState.inicialesUsuario
 
     LaunchedEffect(rut) {
         viewModel.cargarDatosSiniestro(rut)
@@ -78,13 +77,11 @@ fun TrackingScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = {
-                            if (uiState.numeroSiniestro.isNotEmpty() && uiState.estadoActual < 4) {
-                                showAlertaSiniestroActivo = true
-                            } else {
+                        IconButton(
+                            onClick = {
                                 navController.navigate("nuevo_siniestro/$rut")
                             }
-                        }) {
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Nuevo Siniestro",
@@ -131,7 +128,7 @@ fun TrackingScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { navController.navigate("historial/$rut") },
+                        onClick = { navController.navigate("mis_siniestros/$rut") },
                         icon = { Icon(Icons.Default.Folder, contentDescription = "Mis Siniestros") },
                         label = { Text("Siniestros", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
@@ -177,10 +174,20 @@ fun TrackingScreen(
                     color = Color(0xFF263C35)
                 )
                 Text(
-                    text = "Revisa aquí el avance y detalle de tu caso en tiempo real.",
+                    text = "Revisa aquí el avance y detalle de tus siniestros.",
                     fontSize = 13.sp,
                     color = Color.Gray
                 )
+
+                OutlinedButton(
+                    onClick = {
+                        navController.navigate("configurar_recuperacion")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Configurar recuperación de contraseña")
+                }
+
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -197,7 +204,7 @@ fun TrackingScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "MI SINIESTRO ACTIVO",
+                                    text = "ÚLTIMO SINIESTRO",
                                     color = Color.White.copy(alpha = 0.8f),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
@@ -222,7 +229,7 @@ fun TrackingScreen(
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                InfoBoxItem(titulo = "Vehículo", valor = uiState.patente)
+                                InfoBoxItem(titulo = "Comuna", valor = uiState.comuna)
                                 InfoBoxItem(titulo = "Reporte", valor = uiState.fechaReporte)
                             }
 
@@ -269,14 +276,14 @@ fun TrackingScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = { navController.navigate("evidencia") },
+                        onClick = {navController.navigate("mis_siniestros/$rut") },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
                     ) {
                         Icon(Icons.Filled.Description, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Ver / Adjuntar Evidencias", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Consultar evidencias de mis siniestros", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -364,27 +371,6 @@ fun TrackingScreen(
         }
     }
 
-    if (showAlertaSiniestroActivo) {
-        AlertDialog(
-            onDismissRequest = { showAlertaSiniestroActivo = false },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Warning, contentDescription = null, tint = Color.Red)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Siniestro en curso", fontWeight = FontWeight.Bold, color = Color.Red)
-                }
-            },
-            text = {
-                Text("Ya posees el siniestro ${uiState.numeroSiniestro} en proceso de evaluación. Para añadir antecedentes o reportar un nuevo evento de la póliza, contacta directamente a tu liquidador asignado.")
-            },
-            confirmButton = {
-                TextButton(onClick = { showAlertaSiniestroActivo = false }) {
-                    Text("Entendido", fontWeight = FontWeight.Bold)
-                }
-            }
-        )
-    }
-
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -394,7 +380,12 @@ fun TrackingScreen(
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
-                        navController.navigate("login") { popUpTo(0) { inclusive = true } }
+
+                        SesionUsuario.cerrarSesion()
+
+                        navController.navigate("login") {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 ) { Text("Sí, salir", color = Color.Red) }
             },

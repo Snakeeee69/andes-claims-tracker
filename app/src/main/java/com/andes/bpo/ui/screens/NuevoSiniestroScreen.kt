@@ -46,8 +46,6 @@ fun NuevoSiniestroScreen(
     val colorAndes = PrimaryAndes
     val context = LocalContext.current
 
-    val rutLimpio = rut.replace(".", "").replace("-", "")
-    val idAseguradoActual = if (rutLimpio == "158423715") 1 else 2
 
     var compania by remember { mutableStateOf("") }
     var numeroPoliza by remember { mutableStateOf("") }
@@ -171,7 +169,7 @@ fun NuevoSiniestroScreen(
 
                             val nuevoSiniestro = SiniestroEntity(
                                 numero = "SIN-26-${(100000..999999).random()}",
-                                idAsegurado = idAseguradoActual,
+                                idAsegurado = 0,
                                 companiaNombre = compania,
                                 numeroPoliza = numeroPoliza,
                                 tipoSiniestroNombre = tipoSiniestro,
@@ -185,10 +183,21 @@ fun NuevoSiniestroScreen(
                                 proximoPasoTexto = "Revisión inicial de antecedentes"
                             )
 
-                            viewModel.guardarSiniestro(nuevoSiniestro) {
-                                Toast.makeText(context, "Siniestro creado exitosamente", Toast.LENGTH_LONG).show()
-                                navController.popBackStack()
-                            }
+                            viewModel.guardarSiniestro(
+                                siniestro = nuevoSiniestro,
+                                onExito = {
+                                    Toast.makeText(
+                                        context,
+                                        "Siniestro creado exitosamente",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+
+                                    navController.popBackStack()
+                                },
+                                onError = { mensaje ->
+                                    errorMensaje = mensaje
+                                }
+                            )
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),

@@ -1,97 +1,138 @@
+
 package com.andes.bpo.data.local
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.andes.bpo.data.local.dao.SiniestroDao
+import com.andes.bpo.data.local.dao.UsuarioDao
 import com.andes.bpo.data.local.entity.AvisoEntity
 import com.andes.bpo.data.local.entity.DocumentoEntity
 import com.andes.bpo.data.local.entity.GestionEntity
 import com.andes.bpo.data.local.entity.SiniestroEntity
+import com.andes.bpo.data.local.entity.UsuarioEntity
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Database(
     entities = [
         SiniestroEntity::class,
         DocumentoEntity::class,
         GestionEntity::class,
-        AvisoEntity::class
+        AvisoEntity::class,
+        UsuarioEntity::class
     ],
-    version = 2,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun siniestroDao(): SiniestroDao
 
+    abstract fun usuarioDao(): UsuarioDao
+
     companion object {
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS usuarios (
+                        idUsuario INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        rut TEXT NOT NULL,
+                        nombre TEXT NOT NULL,
+                        apellido TEXT NOT NULL,
+                        correo TEXT NOT NULL,
+                        passwordHash TEXT NOT NULL,
+                        passwordSalt TEXT NOT NULL,
+                        rol TEXT NOT NULL
+                    )
+                    """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS
+                    index_usuarios_rut ON usuarios (rut)
+                    """.trimIndent()
+                )
+            }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+
+            override fun migrate(db: SupportSQLiteDatabase) {
+
+                // Asociar siniestros con liquidadores
+                db.execSQL(
+                    """
+            ALTER TABLE siniestros
+            ADD COLUMN idLiquidador INTEGER
+            """.trimIndent()
+                )
+
+                // Identificar el equipo de cada usuario interno
+                db.execSQL(
+                    """
+            ALTER TABLE usuarios
+            ADD COLUMN equipo TEXT
+            """.trimIndent()
+                )
+            }
+        }
+
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+
+            override fun migrate(db: SupportSQLiteDatabase) {
+
+                db.execSQL(
+                    """
+            ALTER TABLE siniestros
+            ADD COLUMN mensajeCierre TEXT
+            """.trimIndent()
+                )
+            }
+        }
+
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+            ALTER TABLE usuarios
+            ADD COLUMN codigoRecuperacionHash TEXT
+            """.trimIndent()
+                )
+            }
+        }
+
+        fun getDatabase(
+            context: Context,
+            scope: CoroutineScope
+        ): AppDatabase {
+
             return INSTANCE ?: synchronized(this) {
-                lateinit var instance: AppDatabase
-                instance = Room.databaseBuilder(
+
+                val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "andes_siniestros_db"
                 )
-                    .fallbackToDestructiveMigration()
-                    .addCallback(object : RoomDatabase.Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            scope.launch(Dispatchers.IO) {
-                                val dao = instance.siniestroDao()
-                                dao.insertSiniestrosIniciales(
-                                    listOf(
-                                        SiniestroEntity(
-                                            idSiniestro = 1,
-                                            numero = "SIN-26-004801",
-                                            idAsegurado = 1,
-                                            companiaNombre = "Seguros Cordillera",
-                                            numeroPoliza = "POL-ASG01-77812",
-                                            tipoSiniestroNombre = "Vehículo – choque o colisión",
-                                            modeloVehiculo = "Suzuki Swift 2022",
-                                            fechaOcurrencia = "02-09-2026",
-                                            fechaReporte = "02-09-2026 18:40",
-                                            comunaNombre = "Maipú",
-                                            descripcion = "Colisión en intersección. Daños en parachoques delantero.",
-                                            etapaNombre = "En liquidación",
-                                            liquidadorNombre = "Paulina F. – Equipo Vehículos",
-                                            proximoPasoTexto = "Tenemos todo lo necesario. Estamos definiendo la resolución con tu compañía de seguros."
-                                        )
-                                    )
-                                )
-                                dao.insertGestion(
-                                    GestionEntity(
-                                        idSiniestro = 1,
-                                        fechaHora = "18 ago 2026 • 14:20",
-                                        descripcion = "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.",
-                                        responsable = "Paulina F."
-                                    )
-                                )
-                                dao.insertGestion(
-                                    GestionEntity(
-                                        idSiniestro = 1,
-                                        fechaHora = "17 ago 2026 • 09:15",
-                                        descripcion = "Se asignó la liquidadora Paulina F. al caso.",
-                                        responsable = "Sistema"
-                                    )
-                                )
-                                dao.insertGestion(
-                                    GestionEntity(
-                                        idSiniestro = 1,
-                                        fechaHora = "16 ago 2026 • 10:30",
-                                        descripcion = "Siniestro reportado e ingresado al sistema de Andes BPO.",
-                                        responsable = "Asegurado"
-                                    )
-                                )
-                            }
-                        }
-                    }).build()
+                    .addMigrations(
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6
+                    )
+                    .build()
+
                 INSTANCE = instance
                 instance
             }

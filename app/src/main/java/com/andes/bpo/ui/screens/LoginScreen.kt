@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.andes.bpo.R
 import com.andes.bpo.viewmodel.LoginViewModel
+import com.andes.bpo.utils.SesionUsuario
 
 @Composable
 fun LoginScreen(
@@ -34,11 +35,30 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.isLoginSuccessful) {
         if (uiState.isLoginSuccessful) {
-            navController.navigate("tracking/${uiState.rut}") {
-                popUpTo("login") { inclusive = true }
+
+            val usuario = SesionUsuario.obtenerSesion()
+
+            val destino = when (usuario?.rol) {
+                "ASEGURADO" -> "tracking/${usuario.rut}"
+
+                "LIQUIDADOR" -> "panel_liquidador"
+
+                "ANALISTA" -> "panel_analista"
+
+                else -> null
+            }
+
+            if (destino != null) {
+                navController.navigate(destino) {
+                    popUpTo("login") {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
             }
         }
     }
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -105,7 +125,7 @@ fun LoginScreen(
                             label = { Text("RUT del Asegurado") },
                             placeholder = { Text("15.842.371-5") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            visualTransformation = RutVisualTransformation(),
+                            visualTransformation = VisualTransformation.None,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             isError = uiState.error != null,
@@ -199,6 +219,12 @@ fun LoginScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
+                        }
+
+                        TextButton(
+                            onClick = { navController.navigate("registro") }
+                        ) {
+                            Text("¿No tienes cuenta? Crear cuenta")
                         }
                     }
                 }

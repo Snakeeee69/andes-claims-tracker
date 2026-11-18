@@ -1,10 +1,13 @@
 package com.andes.bpo.model
 
 data class TrackingUiState(
+    val nombreUsuario: String = "",
+    val inicialesUsuario: String = "",
     val numeroSiniestro: String = "",
     val estadoActual: Int = 1,
     val tipo: String = "",
     val patente: String = "",
+    val comuna: String = "",
     val fechaOcurrencia: String = "",
     val fechaReporte: String = "",
     val nombreLiquidador: String = "",

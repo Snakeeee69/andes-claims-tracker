@@ -1,192 +1,147 @@
+
 package com.andes.bpo.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.andes.bpo.ui.theme.PrimaryAndes
-
-data class GestionUiModel(
-    val id: Int,
-    val fechaHora: String,
-    val descripcion: String,
-    val etapa: String
-)
+import com.andes.bpo.viewmodel.HistorialViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistorialScreen(navController: NavController, rut: String = "158423715") {
-    val colorAndes = PrimaryAndes
-    val rutLimpio = rut.replace(".", "").replace("-", "")
+fun HistorialScreen(
+    navController: NavController,
+    idSiniestro: Int,
+    viewModel: HistorialViewModel = viewModel()
+) {
+    val estado by viewModel.uiState.collectAsState()
 
-    val historialMock = remember(rutLimpio) {
-        if (rutLimpio == "158423715") {
-            listOf(
-                GestionUiModel(
-                    3,
-                    "18 ago 2026 • 14:20",
-                    "Revisión inicial de antecedentes completada. Se solicitan documentos adicionales.",
-                    "En evaluación"
-                ),
-                GestionUiModel(
-                    2,
-                    "17 ago 2026 • 09:15",
-                    "Se asignó la liquidadora Paulina F. al caso.",
-                    "En evaluación"
-                ),
-                GestionUiModel(
-                    1,
-                    "16 ago 2026 • 10:30",
-                    "Siniestro reportado e ingresado al sistema de Andes BPO.",
-                    "Recibido"
-                )
-            )
-        } else {
-            listOf(
-                GestionUiModel(
-                    1,
-                    "Hoy",
-                    "Siniestro reportado e ingresado al sistema de Andes BPO.",
-                    "Recibido"
-                )
-            )
-        }
+    LaunchedEffect(idSiniestro) {
+        viewModel.cargarHistorial(idSiniestro)
     }
-
-    val siniestroIdText = if (rutLimpio == "158423715") "SIN-26-004801" else "Nuevo Caso"
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Historial de Gestiones", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(siniestroIdText, fontSize = 14.sp, color = Color.Gray)
+                        Text("Historial de gestiones")
+
+                        if (estado.numeroSiniestro.isNotEmpty()) {
+                            Text(
+                                estado.numeroSiniestro,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = colorAndes
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = colorAndes
-                )
-            )
-        }
-    ) { paddingValues ->
-        AnimacionEntrada {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Sigue paso a paso las acciones realizadas en tu caso.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 24.dp)
-                ) {
-                    items(historialMock.size) { index ->
-                        val gestion = historialMock[index]
-                        val isLastItem = index == historialMock.size - 1
-
-                        HistorialItem(gestion = gestion, colorAndes = colorAndes, isLastItem = isLastItem)
-                    }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun HistorialItem(gestion: GestionUiModel, colorAndes: Color, isLastItem: Boolean) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(30.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(14.dp)
-                    .clip(CircleShape)
-                    .background(colorAndes)
             )
-
-            if (!isLastItem) {
-                Box(
-                    modifier = Modifier
-                        .width(2.dp)
-                        .fillMaxHeight()
-                        .background(colorAndes.copy(alpha = 0.3f))
-                )
-            }
         }
+    ) { padding ->
 
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column(
+        Box(
             modifier = Modifier
-                .weight(1f)
-                .padding(bottom = 24.dp)
+                .fillMaxSize()
+                .padding(padding)
         ) {
-            Text(
-                text = gestion.fechaHora,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6))
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        text = gestion.etapa,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorAndes
+            when {
+                estado.cargando -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(
+                            Alignment.Center
+                        )
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                estado.error != null -> {
                     Text(
-                        text = gestion.descripcion,
-                        fontSize = 14.sp,
-                        color = Color(0xFF263C35),
-                        lineHeight = 18.sp
+                        text = estado.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(24.dp)
                     )
+                }
+
+                estado.gestiones.isEmpty() -> {
+                    Text(
+                        text = "Aún no hay gestiones registradas.",
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(24.dp)
+                    )
+                }
+
+                else -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(12.dp)
+                    ) {
+                        item {
+                            Text(
+                                text = "Etapa actual: ${estado.etapaActual}",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Spacer(
+                                modifier = Modifier.height(8.dp)
+                            )
+                        }
+
+                        items(
+                            items = estado.gestiones,
+                            key = { it.idGestion }
+                        ) { gestion ->
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement =
+                                        Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = gestion.fechaHora,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+
+                                    Text(
+                                        text = gestion.descripcion,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+
+                                    HorizontalDivider()
+
+                                    Text(
+                                        text = "Responsable: ${gestion.responsable}",
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

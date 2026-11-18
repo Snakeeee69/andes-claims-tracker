@@ -1,54 +1,127 @@
+
 package com.andes.bpo.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.andes.bpo.data.local.AppDatabase
 import com.andes.bpo.model.LoginUiState
-import kotlinx.coroutines.delay
+import com.andes.bpo.utils.PasswordUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.andes.bpo.utils.SesionUsuario
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val usuarioDao = AppDatabase.getDatabase(
+        application,
+        viewModelScope
+    ).usuarioDao()
+
     private val _uiState = MutableStateFlow(LoginUiState())
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<LoginUiState> =
+        _uiState.asStateFlow()
 
     fun onRutChange(input: String) {
-        val limpio = input.replace(Regex("[^0-9kK]"), "").uppercase()
+        val limpio = input
+            .replace(Regex("[^0-9kK]"), "")
+            .uppercase()
+
         if (limpio.length <= 9) {
-            _uiState.update { it.copy(rut = limpio, error = null) }
+            _uiState.update {
+                it.copy(rut = limpio, error = null)
+            }
         }
     }
 
     fun onContrasenaChange(nuevaContrasena: String) {
-        _uiState.update { it.copy(contrasena = nuevaContrasena, error = null) }
+        _uiState.update {
+            it.copy(
+                contrasena = nuevaContrasena,
+                error = null
+            )
+        }
     }
 
     fun login() {
         val rutActual = _uiState.value.rut
         val contrasenaActual = _uiState.value.contrasena
 
-        if (rutActual.isBlank() || contrasenaActual.isBlank()) {
-            _uiState.update { it.copy(error = "El RUT y la contraseña son obligatorios") }
+        if (rutActual.isBlank() ||
+            contrasenaActual.isBlank()
+        ) {
+            _uiState.update {
+                it.copy(
+                    error = "El RUT y la contraseña son obligatorios"
+                )
+            }
             return
         }
 
-        _uiState.update { it.copy(isLoading = true, error = null) }
+        if (_uiState.value.isLoading) return
+
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+                isLoginSuccessful = false
+            )
+        }
 
         viewModelScope.launch {
-            delay(1500)
+            try {
+                val usuarioValido = withContext(Dispatchers.IO) {
 
-            val rutLimpio = rutActual.replace(".", "").replace("-", "")
-            val rutsValidos = listOf("158423715", "987654321")
+                    val usuario = usuarioDao.buscarPorRut(rutActual)
 
-            if (rutLimpio in rutsValidos && contrasenaActual == "123456") {
-                _uiState.update { it.copy(isLoading = false, isLoginSuccessful = true) }
-            } else {
+                    if (usuario != null &&
+                        PasswordUtils.verificarContrasena(
+                            contrasenaActual,
+                            usuario.passwordHash,
+                            usuario.passwordSalt
+                        )
+                    ) {
+                        usuario
+                    } else {
+                        null
+                    }
+                }
+
+                if (usuarioValido != null) {
+
+                    SesionUsuario.iniciarSesion(usuarioValido)
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoginSuccessful = true,
+                            contrasena = "",
+                            error = null
+                        )
+                    }
+
+                } else {
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "RUT o contraseña incorrectos"
+                        )
+                    }
+                }
+
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = "RUT o contraseña incorrectos. Usa RUT: 15.842.371-5 o 9.876.543-2 y Pass: 123456"
+                        error = "No se pudo iniciar sesión. Inténtalo nuevamente."
                     )
                 }
             }

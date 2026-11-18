@@ -1,137 +1,131 @@
 package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.andes.bpo.ui.theme.PrimaryAndes
+import com.andes.bpo.viewmodel.RecuperacionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecuperarContrasenaScreen(navController: NavController) {
-    var correoORut by remember { mutableStateOf("") }
-    var enviado by remember { mutableStateOf(false) }
-
-    val colorAndes = PrimaryAndes
+fun RecuperarContrasenaScreen(
+    navController: NavController,
+    viewModel: RecuperacionViewModel = viewModel()
+) {
+    val estado by viewModel.uiState.collectAsState()
+    var rut by remember { mutableStateOf("") }
+    var codigo by remember { mutableStateOf("") }
+    var claveNueva by remember { mutableStateOf("") }
+    var confirmarClave by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recuperar Contraseña", fontWeight = FontWeight.Bold) },
+                title = { Text("Recuperar contraseña") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = colorAndes
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = colorAndes
-                )
+                    TextButton(onClick = { navController.popBackStack() }) { Text("Volver") }
+                }
             )
         }
-    ) { paddingValues ->
-        AnimacionEntrada {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            if (estado.claveRestablecida) {
+                Text("¡Contraseña actualizada!", style = MaterialTheme.typography.headlineSmall)
+                Text("Ya puedes iniciar sesión con tu nueva contraseña. " +
+                        "El código de recuperación utilizado ha quedado invalidado.")
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Volver al inicio de sesión") }
+            } else {
+                Text(
+                    "Ingresa el RUT y el código que generaste desde tu cuenta. " +
+                            "No se enviará ningún correo en esta versión local."
+                )
+                OutlinedTextField(
+                    value = rut,
+                    onValueChange = {
+                        rut = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("RUT") },
+                    placeholder = { Text("12345678-9") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !estado.cargando
+                )
+                OutlinedTextField(
+                    value = codigo,
+                    onValueChange = {
+                        codigo = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("Código de recuperación") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !estado.cargando
+                )
+                OutlinedTextField(
+                    value = claveNueva,
+                    onValueChange = {
+                        claveNueva = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("Nueva contraseña") },
+                    supportingText = { Text("8 a 72 caracteres, con letras y números") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !estado.cargando
+                )
+                OutlinedTextField(
+                    value = confirmarClave,
+                    onValueChange = {
+                        confirmarClave = it
+                        viewModel.limpiarError()
+                    },
+                    label = { Text("Confirmar nueva contraseña") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !estado.cargando
+                )
 
-                if (!enviado) {
-                    Text(
-                        text = "Ingresa tu RUT o correo electrónico asociado y te enviaremos las instrucciones para restablecer tu contraseña.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.DarkGray,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 32.dp)
-                    )
+                estado.error?.let { mensaje ->
+                    Text(mensaje, color = MaterialTheme.colorScheme.error)
+                }
 
-                    OutlinedTextField(
-                        value = correoORut,
-                        onValueChange = { correoORut = it },
-                        label = { Text("RUT o Correo") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = colorAndes,
-                            focusedLabelColor = colorAndes
+                Button(
+                    onClick = {
+                        viewModel.restablecerClave(
+                            rutIngresado = rut,
+                            codigoIngresado = codigo,
+                            nuevaClave = claveNueva,
+                            confirmarClave = confirmarClave
                         )
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Button(
-                        onClick = { enviado = true },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = colorAndes),
-                        enabled = correoORut.isNotBlank()
-                    ) {
-                        Text("Enviar instrucciones", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                } else {
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Éxito",
-                        tint = Color(0xFF10B981),
-                        modifier = Modifier
-                            .size(80.dp)
-                            .padding(bottom = 16.dp)
-                    )
-
-                    Text(
-                        text = "¡Instrucciones enviadas!",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorAndes,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    Text(
-                        text = "Revisa tu bandeja de entrada o carpeta de spam.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 32.dp)
-                    )
-
-                    Button(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = colorAndes)
-                    ) {
-                        Text(
-                            "Volver al inicio de sesión",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    },
+                    enabled = !estado.cargando && rut.isNotBlank() &&
+                            codigo.isNotBlank() && claveNueva.isNotBlank() && confirmarClave.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (estado.cargando) "Verificando..." else "Cambiar contraseña")
                 }
             }
         }

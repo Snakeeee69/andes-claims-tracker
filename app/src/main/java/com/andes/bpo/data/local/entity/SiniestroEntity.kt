@@ -21,5 +21,7 @@ data class SiniestroEntity(
     val liquidadorNombre: String?,
     val proximoPasoTexto: String,
     val reporteFueraDePlazo: Boolean = false,
-    val resultadoCierre: String? = null
+    val resultadoCierre: String? = null,
+    val idLiquidador: Int? = null,
+    val mensajeCierre: String? = null
 )
