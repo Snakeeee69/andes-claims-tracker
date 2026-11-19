@@ -188,6 +188,14 @@ fun TrackingScreen(
                     Text("Configurar recuperación de contraseña")
                 }
 
+                OutlinedButton(
+                    onClick = {
+                        navController.navigate("perfil")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Mi perfil")
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

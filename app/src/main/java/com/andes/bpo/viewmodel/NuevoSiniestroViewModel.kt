@@ -11,7 +11,13 @@ import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
+import com.andes.bpo.data.local.entity.AreaEntity
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.text.ParsePosition
+import java.text.SimpleDateFormat
+import java.util.Locale
 class NuevoSiniestroViewModel(
     application: Application
 ) : AndroidViewModel(application) {
@@ -24,6 +30,50 @@ class NuevoSiniestroViewModel(
     private val repository = SiniestroRepository(
         db.siniestroDao()
     )
+
+    private val areaDao = AppDatabase.getDatabase(
+        application,
+        viewModelScope
+    ).areaDao()
+
+    private val _areas = MutableStateFlow<List<AreaEntity>>(
+        emptyList()
+    )
+
+    val areas: StateFlow<List<AreaEntity>> =
+        _areas.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            areaDao.asegurarAreasIniciales()
+
+            areaDao.obtenerAreas().collect { lista ->
+                _areas.value = lista
+            }
+        }
+    }
+
+    fun esFechaOcurrenciaValida(fecha: String): Boolean {
+
+        val valor = fecha.trim()
+
+        if (!Regex("""\d{2}/\d{2}/\d{4}""").matches(valor)) {
+            return false
+        }
+
+        val formato = SimpleDateFormat(
+            "dd/MM/yyyy",
+            Locale("es", "CL")
+        ).apply {
+            isLenient = false
+        }
+
+        val posicion = ParsePosition(0)
+        val fechaConvertida = formato.parse(valor, posicion)
+
+        return fechaConvertida != null &&
+                posicion.index == valor.length
+    }
 
     fun guardarSiniestro(
         siniestro: SiniestroEntity,

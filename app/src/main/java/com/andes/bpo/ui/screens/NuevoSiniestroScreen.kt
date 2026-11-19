@@ -23,6 +23,7 @@ import com.andes.bpo.viewmodel.NuevoSiniestroViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.runtime.saveable.rememberSaveable
 
 fun formatearFechaInput(input: String): String {
     val digitos = input.filter { it.isDigit() }.take(8)
@@ -54,9 +55,17 @@ fun NuevoSiniestroScreen(
     var fechaOcurrencia by remember { mutableStateOf("") }
     var comuna by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
-
     var errorMensaje by remember { mutableStateOf<String?>(null) }
 
+    val areas by viewModel.areas.collectAsState()
+
+    var idAreaSeleccionada by rememberSaveable {
+        mutableStateOf<Int?>(null)
+    }
+
+    var menuAreasExpandido by remember {
+        mutableStateOf(false)
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -106,6 +115,59 @@ fun NuevoSiniestroScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
+
+                ExposedDropdownMenuBox(
+                    expanded = menuAreasExpandido,
+                    onExpandedChange = { expandido ->
+                        menuAreasExpandido =
+                            expandido && areas.isNotEmpty()
+                    }
+                ) {
+                    OutlinedTextField(
+                        value = areas.firstOrNull {
+                            it.idArea == idAreaSeleccionada
+                        }?.nombre ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = {
+                            Text("Área del siniestro")
+                        },
+                        placeholder = {
+                            Text("Selecciona un área")
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = menuAreasExpandido
+                            )
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        isError = idAreaSeleccionada == null &&
+                                errorMensaje != null
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = menuAreasExpandido,
+                        onDismissRequest = {
+                            menuAreasExpandido = false
+                        }
+                    ) {
+                        areas.forEach { area ->
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text(area.nombre)
+                                },
+                                onClick = {
+                                    idAreaSeleccionada = area.idArea
+                                    menuAreasExpandido = false
+                                    errorMensaje = null
+                                }
+                            )
+                        }
+                    }
+                }
 
                 OutlinedTextField(
                     value = tipoSiniestro,
@@ -162,9 +224,24 @@ fun NuevoSiniestroScreen(
 
                 Button(
                     onClick = {
-                        if (compania.isBlank() || numeroPoliza.isBlank() || descripcion.isBlank() || fechaOcurrencia.length < 10) {
-                            errorMensaje = "Por favor completa la fecha completa (DD/MM/AAAA) y los datos principales."
+                        if (idAreaSeleccionada == null) {
+                            errorMensaje = "Debes seleccionar el área del siniestro"
                         } else {
+
+
+                            if (
+                                compania.isBlank() ||
+                                numeroPoliza.isBlank() ||
+                                descripcion.isBlank()
+                            ) {
+                                errorMensaje = "Completa los datos obligatorios."
+
+                            } else if (!viewModel.esFechaOcurrenciaValida(fechaOcurrencia)) {
+
+                                errorMensaje =
+                                    "La fecha no es válida. Utiliza el formato DD/MM/AAAA."
+
+                            } else {
                             val fechaActualFormateada = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
 
                             val nuevoSiniestro = SiniestroEntity(
@@ -180,7 +257,8 @@ fun NuevoSiniestroScreen(
                                 descripcion = descripcion,
                                 etapaNombre = "Recibido",
                                 liquidadorNombre = "Por asignar",
-                                proximoPasoTexto = "Revisión inicial de antecedentes"
+                                proximoPasoTexto = "Revisión inicial de antecedentes",
+                                idArea = idAreaSeleccionada
                             )
 
                             viewModel.guardarSiniestro(
@@ -198,7 +276,7 @@ fun NuevoSiniestroScreen(
                                     errorMensaje = mensaje
                                 }
                             )
-                        }
+                        }}
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = colorAndes)

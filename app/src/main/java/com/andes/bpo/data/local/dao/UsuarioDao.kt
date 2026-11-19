@@ -74,5 +74,33 @@ interface UsuarioDao {
         nuevoHash: String,
         nuevaSal: String
     ): Int
+    @Query("SELECT COUNT(*) FROM usuarios WHERE LOWER(correo) = LOWER(:correo) AND idUsuario != :idUsuario")
+    suspend fun contarCorreoEnOtrosUsuarios(correo: String, idUsuario: Int): Int
 
+    @Query("""
+    UPDATE usuarios
+    SET nombre = :nombre,
+        apellido = :apellido,
+        correo = :correo
+    WHERE idUsuario = :idUsuario
+""")
+    suspend fun actualizarDatosPerfil(
+        idUsuario: Int,
+        nombre: String,
+        apellido: String,
+        correo: String
+    ): Int
+
+    @Query("""
+    UPDATE usuarios
+    SET passwordHash = :nuevoHash,
+        passwordSalt = :nuevaSal,
+        codigoRecuperacionHash = NULL
+    WHERE idUsuario = :idUsuario
+""")
+    suspend fun actualizarClaveDesdePerfil(
+        idUsuario: Int,
+        nuevoHash: String,
+        nuevaSal: String
+    ): Int
 }

@@ -109,6 +109,15 @@ fun PanelInternoScreen(
                         Text("• Reasignar casos")
                     }
 
+                    OutlinedButton(
+                        onClick = {
+                            navController.navigate("perfil")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Mi perfil")
+                    }
+
                     Text(
                         text = "Estas funciones se conectarán en los siguientes pasos.",
                         style = MaterialTheme.typography.bodySmall,
@@ -137,6 +146,14 @@ fun PanelInternoScreen(
                 }
             }
 
+            OutlinedButton(
+                onClick = {
+                    navController.navigate("perfil")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Mi perfil")
+            }
             Spacer(modifier = Modifier.weight(1f))
 
             OutlinedButton(

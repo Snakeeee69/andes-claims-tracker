@@ -1,4 +1,3 @@
-
 package com.andes.bpo.data.local
 
 import android.content.Context
@@ -15,6 +14,8 @@ import com.andes.bpo.data.local.entity.GestionEntity
 import com.andes.bpo.data.local.entity.SiniestroEntity
 import com.andes.bpo.data.local.entity.UsuarioEntity
 import kotlinx.coroutines.CoroutineScope
+import com.andes.bpo.data.local.entity.AreaEntity
+import com.andes.bpo.data.local.dao.AreaDao
 
 @Database(
     entities = [
@@ -22,9 +23,10 @@ import kotlinx.coroutines.CoroutineScope
         DocumentoEntity::class,
         GestionEntity::class,
         AvisoEntity::class,
-        UsuarioEntity::class
+        UsuarioEntity::class,
+        AreaEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,6 +34,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun siniestroDao(): SiniestroDao
 
     abstract fun usuarioDao(): UsuarioDao
+
+    abstract fun areaDao(): AreaDao
 
     companion object {
 
@@ -101,13 +105,35 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-
         private val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
                     """
             ALTER TABLE usuarios
             ADD COLUMN codigoRecuperacionHash TEXT
+            """.trimIndent()
+                )
+            }
+        }
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+
+            override fun migrate(db: SupportSQLiteDatabase) {
+
+                db.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS `areas` (
+                `idArea` INTEGER NOT NULL,
+                `nombre` TEXT NOT NULL,
+                PRIMARY KEY(`idArea`)
+            )
+            """.trimIndent()
+                )
+
+                db.execSQL(
+                    """
+            ALTER TABLE `siniestros`
+            ADD COLUMN `idArea` INTEGER
             """.trimIndent()
                 )
             }
@@ -129,7 +155,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_2_3,
                         MIGRATION_3_4,
                         MIGRATION_4_5,
-                        MIGRATION_5_6
+                        MIGRATION_5_6,
+                        MIGRATION_6_7
                     )
                     .build()
 

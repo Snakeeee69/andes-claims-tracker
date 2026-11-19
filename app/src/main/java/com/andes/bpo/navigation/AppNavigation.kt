@@ -19,6 +19,7 @@ import com.andes.bpo.ui.screens.BandejaAnalistaScreen
 import com.andes.bpo.ui.screens.BandejaLiquidadorScreen
 import com.andes.bpo.ui.screens.DocumentosLiquidadorScreen
 import com.andes.bpo.ui.screens.ConfigurarCodigoRecuperacionScreen
+import com.andes.bpo.ui.screens.PerfilScreen
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -80,6 +81,10 @@ fun AppNavigation() {
 
         composable("ayuda") {
             CentroAyudaScreen(navController = navController)
+        }
+
+        composable("perfil") {
+            PerfilScreen(navController = navController)
         }
 
         composable("nuevo_siniestro/{rut}") { backStackEntry ->
