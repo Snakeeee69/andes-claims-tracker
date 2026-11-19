@@ -29,15 +29,44 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUiState> =
         _uiState.asStateFlow()
 
-    fun onRutChange(input: String) {
-        val limpio = input
-            .replace(Regex("[^0-9kK]"), "")
-            .uppercase()
+    companion object {
 
-        if (limpio.length <= 9) {
-            _uiState.update {
-                it.copy(rut = limpio, error = null)
+        fun normalizarRutEntrada(input: String): String? {
+            val limpio = input
+                .replace(Regex("[^0-9kK]"), "")
+                .uppercase()
+
+            return limpio.takeIf {
+                it.length <= 9
             }
+        }
+
+        fun validarCamposLogin(
+            rut: String,
+            contrasena: String
+        ): String? {
+
+            return if (
+                rut.isBlank() ||
+                contrasena.isBlank()
+            ) {
+                "El RUT y la contraseña son obligatorios"
+            } else {
+                null
+            }
+        }
+    }
+
+
+    fun onRutChange(input: String) {
+        val limpio = normalizarRutEntrada(input)
+            ?: return
+
+        _uiState.update {
+            it.copy(
+                rut = limpio,
+                error = null
+            )
         }
     }
 
@@ -54,16 +83,18 @@ class LoginViewModel(
         val rutActual = _uiState.value.rut
         val contrasenaActual = _uiState.value.contrasena
 
-        if (rutActual.isBlank() ||
-            contrasenaActual.isBlank()
-        ) {
+        val errorCampos = validarCamposLogin(
+            rutActual,
+            contrasenaActual
+        )
+
+        if (errorCampos != null) {
             _uiState.update {
-                it.copy(
-                    error = "El RUT y la contraseña son obligatorios"
-                )
+                it.copy(error = errorCampos)
             }
             return
         }
+
 
         if (_uiState.value.isLoading) return
 

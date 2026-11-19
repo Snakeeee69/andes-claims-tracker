@@ -41,6 +41,25 @@ class RegistroViewModel(
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState = _uiState.asStateFlow()
 
+
+    companion object {
+
+        fun esContrasenaRegistroValida(
+            contrasena: String
+        ): Boolean {
+            return contrasena.length >= 8 &&
+                    contrasena.any { it.isLetter() } &&
+                    contrasena.any { it.isDigit() }
+        }
+
+        fun coincidenContrasenasRegistro(
+            contrasena: String,
+            confirmacion: String
+        ): Boolean {
+            return contrasena == confirmacion
+        }
+    }
+
     fun cambiarCampo(campo: String, valor: String) {
         _uiState.update { actual ->
             val nuevo = when (campo) {
@@ -115,16 +134,16 @@ class RegistroViewModel(
             errores["correo"] = "Ingresa un correo válido"
         }
 
-        if (
-            datos.contrasena.length < 8 ||
-            !datos.contrasena.any { it.isLetter() } ||
-            !datos.contrasena.any { it.isDigit() }
-        ) {
+        if (!esContrasenaRegistroValida(datos.contrasena)) {
             errores["contrasena"] =
                 "Mínimo 8 caracteres, con letras y números"
         }
 
-        if (datos.confirmacion != datos.contrasena) {
+        if (!coincidenContrasenasRegistro(
+                datos.contrasena,
+                datos.confirmacion
+            )
+        ) {
             errores["confirmacion"] =
                 "Las contraseñas no coinciden"
         }

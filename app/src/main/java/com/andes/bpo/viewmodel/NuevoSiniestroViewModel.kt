@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.text.ParsePosition
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.time.format.ResolverStyle
 class NuevoSiniestroViewModel(
     application: Application
 ) : AndroidViewModel(application) {
@@ -53,27 +57,42 @@ class NuevoSiniestroViewModel(
         }
     }
 
+
     fun esFechaOcurrenciaValida(fecha: String): Boolean {
-
-        val valor = fecha.trim()
-
-        if (!Regex("""\d{2}/\d{2}/\d{4}""").matches(valor)) {
-            return false
-        }
-
-        val formato = SimpleDateFormat(
-            "dd/MM/yyyy",
-            Locale("es", "CL")
-        ).apply {
-            isLenient = false
-        }
-
-        val posicion = ParsePosition(0)
-        val fechaConvertida = formato.parse(valor, posicion)
-
-        return fechaConvertida != null &&
-                posicion.index == valor.length
+        return validarFechaOcurrencia(fecha)
     }
+
+    companion object {
+
+        fun validarFechaOcurrencia(
+            fecha: String,
+            hoy: LocalDate = LocalDate.now()
+        ): Boolean {
+
+            val valor = fecha.trim()
+
+            if (!Regex("""\d{2}/\d{2}/\d{4}""").matches(valor)) {
+                return false
+            }
+
+            return try {
+                val formato = DateTimeFormatter
+                    .ofPattern("dd/MM/uuuu")
+                    .withResolverStyle(ResolverStyle.STRICT)
+
+                val fechaIngresada = LocalDate.parse(
+                    valor,
+                    formato
+                )
+
+                !fechaIngresada.isAfter(hoy)
+
+            } catch (e: DateTimeParseException) {
+                false
+            }
+        }
+    }
+
 
     fun guardarSiniestro(
         siniestro: SiniestroEntity,

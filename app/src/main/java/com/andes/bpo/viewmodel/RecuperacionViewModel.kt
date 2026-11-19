@@ -30,6 +30,43 @@ class RecuperacionViewModel(application: Application) : AndroidViewModel(applica
     private val _uiState = MutableStateFlow(RecuperacionUiState())
     val uiState = _uiState.asStateFlow()
 
+    companion object {
+
+        fun normalizarRutRecuperacion(rut: String): String =
+            rut.replace(Regex("[^0-9kK]"), "")
+                .uppercase(Locale.ROOT)
+
+        // Devuelve null cuando los datos son válidos; de lo contrario,
+        // devuelve el mensaje que verá el usuario.
+        fun validarDatosRecuperacion(
+            rutIngresado: String,
+            codigoIngresado: String,
+            nuevaClave: String,
+            confirmarClave: String
+        ): String? {
+            val rut = normalizarRutRecuperacion(rutIngresado)
+
+            return when {
+                !rut.matches(Regex("[0-9]{7,8}[0-9K]")) ->
+                    "Ingresa un RUT válido, como en el inicio de sesión"
+
+                codigoIngresado.isBlank() ->
+                    "Ingresa tu código de recuperación"
+
+                nuevaClave.length !in 8..72 ->
+                    "La contraseña debe tener entre 8 y 72 caracteres"
+
+                !nuevaClave.any { it.isLetter() } || !nuevaClave.any { it.isDigit() } ->
+                    "La contraseña debe contener letras y números"
+
+                nuevaClave != confirmarClave ->
+                    "Las contraseñas no coinciden"
+
+                else -> null
+            }
+        }
+    }
+
     fun limpiarError() {
         _uiState.update { it.copy(error = null) }
     }
@@ -90,25 +127,15 @@ class RecuperacionViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val rut = rutIngresado
-                        .replace(Regex("[^0-9kK]"), "")
-                        .uppercase(Locale.ROOT)
+                    val errorDatos = validarDatosRecuperacion(
+                        rutIngresado = rutIngresado,
+                        codigoIngresado = codigoIngresado,
+                        nuevaClave = nuevaClave,
+                        confirmarClave = confirmarClave
+                    )
+                    require(errorDatos == null) { errorDatos ?: "Datos inválidos" }
 
-                    require(rut.matches(Regex("[0-9]{7,8}[0-9K]"))) {
-                        "Ingresa un RUT válido, como en el inicio de sesión"
-                    }
-                    require(codigoIngresado.isNotBlank()) {
-                        "Ingresa tu código de recuperación"
-                    }
-                    require(nuevaClave.length in 8..72) {
-                        "La contraseña debe tener entre 8 y 72 caracteres"
-                    }
-                    require(nuevaClave.any { it.isLetter() } && nuevaClave.any { it.isDigit() }) {
-                        "La contraseña debe contener letras y números"
-                    }
-                    require(nuevaClave == confirmarClave) {
-                        "Las contraseñas no coinciden"
-                    }
+                    val rut = normalizarRutRecuperacion(rutIngresado)
 
                     val usuario = usuarioDao.buscarPorRut(rut)
                         ?: error("El RUT o el código de recuperación no es correcto")
