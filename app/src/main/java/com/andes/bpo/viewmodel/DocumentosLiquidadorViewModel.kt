@@ -36,7 +36,7 @@ class DocumentosLiquidadorViewModel(application: Application) : AndroidViewModel
                 val sesion = SesionUsuario.obtenerSesion()
                     ?: error("Debes iniciar sesión")
 
-                check(sesion.rol == "LIQUIDADOR") {
+                check(sesion.rol.startsWith("LIQUIDADOR")) {
                     "Solo un liquidador puede consultar esta bandeja"
                 }
 

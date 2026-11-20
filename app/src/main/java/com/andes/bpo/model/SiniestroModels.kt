@@ -7,10 +7,20 @@ enum class EstadoSiniestro(val descripcion: String) {
     CERRADO("Cerrado")
 }
 
+enum class RolUsuario(val etiqueta: String) {
+    ASEGURADO_NATURAL("Asegurado (Persona Natural)"),
+    ASEGURADO_EMPRESA("Asegurado (Empresa / Corredor)"),
+    ANALISTA("Analista"),
+    ADMINISTRADOR("Administrador"),
+    LIQUIDADOR_EXTERNO("Liquidador Externo"),
+    LIQUIDADOR_RESPALDO("Liquidador Respaldo")
+}
+
 data class HistorialGestion(
     val fecha: String,
     val titulo: String,
-    val detalle: String
+    val detalle: String,
+    val responsable: String = "Sistema"
 )
 
 data class Siniestro(

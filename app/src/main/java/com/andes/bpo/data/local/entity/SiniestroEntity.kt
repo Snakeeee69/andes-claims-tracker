@@ -12,7 +12,7 @@ data class SiniestroEntity(
     val companiaNombre: String,
     val numeroPoliza: String,
     val tipoSiniestroNombre: String,
-    val modeloVehiculo: String = "Suzuki Swift 2022",
+    val modeloVehiculo: String = "",
     val fechaOcurrencia: String,
     val fechaReporte: String,
     val comunaNombre: String,
@@ -24,5 +24,10 @@ data class SiniestroEntity(
     val resultadoCierre: String? = null,
     val idLiquidador: Int? = null,
     val mensajeCierre: String? = null,
-    val idArea: Int? = null
+    val idArea: Int? = null,
+    val fechaLimiteLegal: String? = null,
+    val diasProrroga: Int = 0,
+    val fechaLimiteRespuestaLiq: String? = null,
+    val aceptadoPorLiquidador: Boolean? = null,
+    val motivoRechazoLiquidador: String? = null
 )

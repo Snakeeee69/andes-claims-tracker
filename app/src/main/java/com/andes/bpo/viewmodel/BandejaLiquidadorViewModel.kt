@@ -1,4 +1,3 @@
-
 package com.andes.bpo.viewmodel
 
 import android.app.Application
@@ -39,10 +38,13 @@ class BandejaLiquidadorViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val dao = AppDatabase.getDatabase(
+    private val db = AppDatabase.getDatabase(
         application,
         viewModelScope
-    ).siniestroDao()
+    )
+
+    private val dao = db.siniestroDao()
+    private val usuarioDao = db.usuarioDao()
 
     private val _uiState = MutableStateFlow(
         BandejaLiquidadorUiState()
@@ -60,7 +62,7 @@ class BandejaLiquidadorViewModel(
 
             val usuario = SesionUsuario.obtenerSesion()
 
-            if (usuario?.rol != "LIQUIDADOR") {
+            if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
                 _uiState.update {
                     it.copy(
                         cargando = false,
@@ -98,6 +100,96 @@ class BandejaLiquidadorViewModel(
         }
     }
 
+    fun aceptarCaso(idSiniestro: Int) {
+        val usuario = SesionUsuario.obtenerSesion()
+
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
+            _uiState.update {
+                it.copy(mensaje = "No tienes permiso para aceptar casos")
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val fecha = SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).format(Date())
+
+                withContext(Dispatchers.IO) {
+                    dao.aceptarCasoLiquidador(
+                        idSiniestro = idSiniestro,
+                        idLiquidador = usuario.idUsuario,
+                        fechaHora = fecha
+                    )
+                }
+
+                _uiState.update {
+                    it.copy(mensaje = "Caso aceptado formalmente")
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(mensaje = e.message ?: "No se pudo aceptar el caso")
+                }
+            }
+        }
+    }
+
+    fun rechazarYDerivar(idSiniestro: Int, motivoRechazo: String) {
+        val usuario = SesionUsuario.obtenerSesion()
+
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
+            _uiState.update {
+                it.copy(mensaje = "No tienes permiso para rechazar casos")
+            }
+            return
+        }
+
+        val motivo = motivoRechazo.trim()
+        if (motivo.length !in 5..300) {
+            _uiState.update {
+                it.copy(mensaje = "Indica un motivo de rechazo de entre 5 y 300 caracteres")
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val fecha = SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).format(Date())
+
+                withContext(Dispatchers.IO) {
+                    val respaldo = usuarioDao.obtenerLiquidadorRespaldo(usuario.equipo ?: "VEHICULOS")
+                        ?: error("No hay liquidador de respaldo configurado para este equipo")
+
+                    dao.rechazarYDerivarALiquidador2(
+                        idSiniestro = idSiniestro,
+                        idLiquidador1 = usuario.idUsuario,
+                        idLiquidador2 = respaldo.idUsuario,
+                        nombreLiquidador2 = "${respaldo.nombre} ${respaldo.apellido}",
+                        motivoRechazo = motivo,
+                        fechaHora = fecha
+                    )
+                }
+
+                _uiState.update {
+                    it.copy(mensaje = "Caso rechazado y derivado al Liquidador de Respaldo")
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(mensaje = e.message ?: "No se pudo derivar el caso")
+                }
+            }
+        }
+    }
+
     fun registrarGestion(
         idSiniestro: Int,
         descripcion: String,
@@ -105,7 +197,7 @@ class BandejaLiquidadorViewModel(
     ) {
         val usuario = SesionUsuario.obtenerSesion()
 
-        if (usuario?.rol != "LIQUIDADOR") {
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
             _uiState.update {
                 it.copy(
                     errorGestion = "No tienes permisos para registrar gestiones"
@@ -182,7 +274,7 @@ class BandejaLiquidadorViewModel(
 
         val usuario = SesionUsuario.obtenerSesion()
 
-        if (usuario == null || usuario.rol != "LIQUIDADOR") {
+        if (usuario == null || !usuario.rol.startsWith("LIQUIDADOR")) {
             _uiState.update {
                 it.copy(
                     mensaje = "No tienes permiso para cambiar etapas"
@@ -248,7 +340,6 @@ class BandejaLiquidadorViewModel(
         }
     }
 
-
     fun cerrarSiniestro(
         idSiniestro: Int,
         resultado: String,
@@ -256,7 +347,7 @@ class BandejaLiquidadorViewModel(
     ) {
         val usuario = SesionUsuario.obtenerSesion()
 
-        if (usuario?.rol != "LIQUIDADOR") {
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
             _uiState.update {
                 it.copy(mensaje = "No tienes permiso para cerrar casos")
             }
@@ -317,7 +408,7 @@ class BandejaLiquidadorViewModel(
     ) {
         val usuario = SesionUsuario.obtenerSesion()
 
-        if (usuario?.rol != "LIQUIDADOR") {
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
             _uiState.update {
                 it.copy(
                     errorSolicitud =

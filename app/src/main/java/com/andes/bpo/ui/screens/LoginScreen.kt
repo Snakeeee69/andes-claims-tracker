@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.andes.bpo.R
-import com.andes.bpo.viewmodel.LoginViewModel
 import com.andes.bpo.utils.SesionUsuario
+import com.andes.bpo.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
@@ -35,17 +35,18 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.isLoginSuccessful) {
         if (uiState.isLoginSuccessful) {
-
             val usuario = SesionUsuario.obtenerSesion()
 
-            val destino = when (usuario?.rol) {
-                "ASEGURADO" -> "tracking/${usuario.rut}"
-
-                "LIQUIDADOR" -> "panel_liquidador"
-
-                "ANALISTA" -> "panel_analista"
-
-                else -> null
+            val destino = if (uiState.requiereCambioClave) {
+                "cambio_clave_obligatorio"
+            } else {
+                when (usuario?.rol) {
+                    "ASEGURADO_NATURAL", "ASEGURADO_EMPRESA", "ASEGURADO" -> "tracking/${usuario.rut}"
+                    "LIQUIDADOR_EXTERNO", "LIQUIDADOR_RESPALDO", "LIQUIDADOR" -> "panel_liquidador"
+                    "ANALISTA" -> "panel_analista"
+                    "ADMINISTRADOR" -> "panel_admin"
+                    else -> null
+                }
             }
 
             if (destino != null) {
@@ -58,7 +59,6 @@ fun LoginScreen(
             }
         }
     }
-
 
     Surface(
         modifier = Modifier.fillMaxSize(),

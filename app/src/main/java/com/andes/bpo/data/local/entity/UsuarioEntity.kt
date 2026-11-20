@@ -17,7 +17,12 @@ data class UsuarioEntity(
     val correo: String,
     val passwordHash: String,
     val passwordSalt: String,
-    val rol: String = "ASEGURADO",
+    val rol: String = "ASEGURADO_NATURAL",
+    val direccion: String? = null,
+    val aseguradora: String? = null,
     val equipo: String? = null,
+    val tipoLiquidador: String? = null,
+    val idArea: Int? = null,
+    val requiereCambioClave: Boolean = false,
     val codigoRecuperacionHash: String? = null
 )

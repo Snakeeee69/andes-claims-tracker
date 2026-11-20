@@ -1,4 +1,3 @@
-
 package com.andes.bpo.viewmodel
 
 import android.app.Application
@@ -9,6 +8,7 @@ import com.andes.bpo.data.local.entity.SiniestroEntity
 import com.andes.bpo.data.local.entity.UsuarioEntity
 import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -116,6 +115,9 @@ class BandejaAnalistaViewModel(
                     tipo.equals("Choque", true) -> "VEHICULOS"
 
             tipo.startsWith("Hogar", true) -> "HOGAR"
+
+            tipo.startsWith("Salud", true) ||
+                    tipo.startsWith("Vida", true) -> "SALUD"
 
             else -> null
         }
@@ -232,6 +234,61 @@ class BandejaAnalistaViewModel(
                             } else {
                                 "No se pudo asignar el siniestro"
                             }
+                    )
+                }
+            }
+        }
+    }
+
+    fun aplicarProrroga(
+        idSiniestro: Int,
+        diasProrroga: Int,
+        motivo: String
+    ) {
+        val usuario = SesionUsuario.obtenerSesion()
+
+        if (usuario?.rol != "ANALISTA") {
+            _uiState.update {
+                it.copy(mensaje = "No tienes permiso para aplicar prórrogas")
+            }
+            return
+        }
+
+        if (diasProrroga !in listOf(90, 180) || motivo.trim().length !in 5..300) {
+            _uiState.update {
+                it.copy(mensaje = "La prórroga debe ser de 90 o 180 días con un motivo válido")
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val fecha = SimpleDateFormat(
+                    "dd/MM/yyyy HH:mm",
+                    Locale.getDefault()
+                ).format(Date())
+
+                withContext(Dispatchers.IO) {
+                    siniestroDao.aplicarProrrogaAnalista(
+                        idSiniestro = idSiniestro,
+                        idAnalista = usuario.idUsuario,
+                        diasProrroga = diasProrroga,
+                        motivo = motivo.trim(),
+                        fechaHora = fecha
+                    )
+                }
+
+                _uiState.update {
+                    it.copy(
+                        mensaje = "Prórroga de $diasProrroga días aplicada (D.S. N° 1.055)"
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        mensaje = e.message ?: "No se pudo aplicar la prórroga"
                     )
                 }
             }

@@ -1,4 +1,3 @@
-
 package com.andes.bpo.viewmodel
 
 import android.app.Application
@@ -7,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.andes.bpo.data.local.AppDatabase
 import com.andes.bpo.data.local.entity.UsuarioEntity
+import com.andes.bpo.data.remote.RetrofitClient
 import com.andes.bpo.utils.PasswordUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,10 +17,14 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 
 data class RegistroUiState(
+    val tipoAsegurado: String = "ASEGURADO_NATURAL",
     val rut: String = "",
     val nombre: String = "",
     val apellido: String = "",
     val correo: String = "",
+    val aseguradora: String = "",
+    val region: String = "",
+    val direccion: String = "",
     val contrasena: String = "",
     val confirmacion: String = "",
     val errores: Map<String, String> = emptyMap(),
@@ -41,12 +45,39 @@ class RegistroViewModel(
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState = _uiState.asStateFlow()
 
-
     companion object {
+        val ASEGURADORAS = listOf(
+            "Seguros Falabella",
+            "BCI Seguros",
+            "Consorcio",
+            "HDI Seguros",
+            "Chilena Consolidada (Zurich)",
+            "SURA",
+            "Mapfre",
+            "Liberty Seguros",
+            "MetLife"
+        )
 
-        fun esContrasenaRegistroValida(
-            contrasena: String
-        ): Boolean {
+        val REGIONES_CHILE = listOf(
+            "Región de Arica y Parinacota",
+            "Región de Tarapacá",
+            "Región de Antofagasta",
+            "Región de Atacama",
+            "Región de Coquimbo",
+            "Región de Valparaíso",
+            "Región Metropolitana de Santiago",
+            "Región del Libertador General Bernardo O'Higgins",
+            "Región del Maule",
+            "Región de Ñuble",
+            "Región del Biobío",
+            "Región de La Araucanía",
+            "Región de Los Ríos",
+            "Región de Los Lagos",
+            "Región de Aysén del General Carlos Ibáñez del Campo",
+            "Región de Magallanes y de la Antártica Chilena"
+        )
+
+        fun esContrasenaRegistroValida(contrasena: String): Boolean {
             return contrasena.length >= 8 &&
                     contrasena.any { it.isLetter() } &&
                     contrasena.any { it.isDigit() }
@@ -57,6 +88,16 @@ class RegistroViewModel(
             confirmacion: String
         ): Boolean {
             return contrasena == confirmacion
+        }
+    }
+
+    fun cambiarTipoAsegurado(nuevoTipo: String) {
+        _uiState.update { actual ->
+            actual.copy(
+                tipoAsegurado = nuevoTipo,
+                errores = actual.errores - "nombre" - "apellido",
+                errorGeneral = null
+            )
         }
     }
 
@@ -71,6 +112,9 @@ class RegistroViewModel(
                 "nombre" -> actual.copy(nombre = valor)
                 "apellido" -> actual.copy(apellido = valor)
                 "correo" -> actual.copy(correo = valor)
+                "aseguradora" -> actual.copy(aseguradora = valor)
+                "region" -> actual.copy(region = valor)
+                "direccion" -> actual.copy(direccion = valor)
                 "contrasena" -> actual.copy(contrasena = valor)
                 "confirmacion" -> actual.copy(confirmacion = valor)
                 else -> actual
@@ -113,6 +157,7 @@ class RegistroViewModel(
 
         if (datos.guardando || datos.registrado) return
 
+        val esEmpresa = datos.tipoAsegurado == "ASEGURADO_EMPRESA"
         val errores = mutableMapOf<String, String>()
 
         if (!rutValido(datos.rut)) {
@@ -120,38 +165,35 @@ class RegistroViewModel(
         }
 
         if (datos.nombre.trim().length < 2) {
-            errores["nombre"] = "Ingresa tu nombre"
+            errores["nombre"] = if (esEmpresa) "Ingresa la razón social" else "Ingresa tu nombre"
         }
 
-        if (datos.apellido.trim().length < 2) {
+        if (!esEmpresa && datos.apellido.trim().length < 2) {
             errores["apellido"] = "Ingresa tu apellido"
         }
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(
-                datos.correo.trim()
-            ).matches()
-        ) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(datos.correo.trim()).matches()) {
             errores["correo"] = "Ingresa un correo válido"
         }
 
-        if (!esContrasenaRegistroValida(datos.contrasena)) {
-            errores["contrasena"] =
-                "Mínimo 8 caracteres, con letras y números"
+        if (datos.aseguradora.isBlank()) {
+            errores["aseguradora"] = "Selecciona tu aseguradora"
         }
 
-        if (!coincidenContrasenasRegistro(
-                datos.contrasena,
-                datos.confirmacion
-            )
-        ) {
-            errores["confirmacion"] =
-                "Las contraseñas no coinciden"
+        if (datos.region.isBlank()) {
+            errores["region"] = "Selecciona tu región"
+        }
+
+        if (!esContrasenaRegistroValida(datos.contrasena)) {
+            errores["contrasena"] = "Mínimo 8 caracteres, con letras y números"
+        }
+
+        if (!coincidenContrasenasRegistro(datos.contrasena, datos.confirmacion)) {
+            errores["confirmacion"] = "Las contraseñas no coinciden"
         }
 
         if (errores.isNotEmpty()) {
-            _uiState.update {
-                it.copy(errores = errores)
-            }
+            _uiState.update { it.copy(errores = errores) }
             return
         }
 
@@ -161,39 +203,51 @@ class RegistroViewModel(
 
         viewModelScope.launch {
             try {
-                val existe = withContext(Dispatchers.IO) {
-                    usuarioDao.buscarPorRut(datos.rut) != null
-                }
-
-                if (existe) {
-                    _uiState.update {
-                        it.copy(
-                            guardando = false,
-                            errores = mapOf(
-                                "rut" to "Este RUT ya está registrado"
-                            )
-                        )
-                    }
-                    return@launch
-                }
-
                 withContext(Dispatchers.IO) {
-                    val password = PasswordUtils.generarHash(
-                        datos.contrasena
-                    )
+                    val apellidoFinal = if (esEmpresa) {
+                        datos.apellido.trim().ifBlank { "Empresa" }
+                    } else {
+                        datos.apellido.trim()
+                    }
 
-                    val usuario = UsuarioEntity(
+                    val direccionCompleta = if (datos.direccion.trim().isNotBlank()) {
+                        "${datos.direccion.trim()}, ${datos.region}"
+                    } else {
+                        datos.region
+                    }
+
+                    val usuarioParaBackend = UsuarioEntity(
                         rut = datos.rut,
                         nombre = datos.nombre.trim(),
-                        apellido = datos.apellido.trim(),
-                        correo = datos.correo.trim()
-                            .lowercase(Locale.ROOT),
-                        passwordHash = password.hash,
-                        passwordSalt = password.salt,
-                        rol = "ASEGURADO"
+                        apellido = apellidoFinal,
+                        correo = datos.correo.trim().lowercase(Locale.ROOT),
+                        passwordHash = datos.contrasena,
+                        passwordSalt = "",
+                        rol = datos.tipoAsegurado,
+                        direccion = direccionCompleta,
+                        aseguradora = datos.aseguradora
                     )
 
-                    usuarioDao.registrarUsuario(usuario)
+                    val response = RetrofitClient.api.registrarUsuario(usuarioParaBackend)
+
+                    if (response.isSuccessful) {
+                        val passwordLocal = PasswordUtils.generarHash(datos.contrasena)
+                        val cuerpoRemoto = response.body()
+                        val usuarioLocal = (cuerpoRemoto ?: usuarioParaBackend).copy(
+                            passwordHash = passwordLocal.hash,
+                            passwordSalt = passwordLocal.salt,
+                            rol = cuerpoRemoto?.rol ?: datos.tipoAsegurado,
+                            direccion = cuerpoRemoto?.direccion ?: direccionCompleta,
+                            aseguradora = cuerpoRemoto?.aseguradora ?: datos.aseguradora
+                        )
+                        runCatching {
+                            usuarioDao.registrarUsuario(usuarioLocal)
+                        }
+                    } else if (response.code() == 400 || response.code() == 409) {
+                        throw IllegalArgumentException("Este RUT o correo ya está registrado en el servidor")
+                    } else {
+                        throw Exception("Error del servidor (${response.code()})")
+                    }
                 }
 
                 _uiState.update {
@@ -205,12 +259,20 @@ class RegistroViewModel(
                     )
                 }
 
+            } catch (e: IllegalArgumentException) {
+                _uiState.update {
+                    it.copy(
+                        guardando = false,
+                        errores = mapOf(
+                            "rut" to (e.message ?: "Este RUT ya está registrado")
+                        )
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         guardando = false,
-                        errorGeneral = "No se pudo registrar la cuenta. " +
-                                "Comprueba los datos e inténtalo nuevamente."
+                        errorGeneral = e.message ?: "No se pudo conectar con el servidor."
                     )
                 }
             }

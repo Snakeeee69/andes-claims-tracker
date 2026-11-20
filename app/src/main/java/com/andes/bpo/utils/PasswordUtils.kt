@@ -1,6 +1,6 @@
-
 package com.andes.bpo.utils
 
+import org.mindrot.jbcrypt.BCrypt
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
@@ -18,14 +18,12 @@ object PasswordUtils {
     private const val LONGITUD_CLAVE = 256
 
     fun generarHash(contrasena: String): PasswordData {
-
         require(contrasena.isNotBlank()) {
             "La contraseña no puede estar vacía"
         }
 
         val salt = ByteArray(16)
         SecureRandom().nextBytes(salt)
-
         val hash = derivarClave(contrasena, salt)
 
         return PasswordData(
@@ -34,11 +32,23 @@ object PasswordUtils {
         )
     }
 
+    fun generarHashBCrypt(contrasena: String): PasswordData {
+        require(contrasena.isNotBlank()) {
+            "La contraseña no puede estar vacía"
+        }
+        val salt = BCrypt.gensalt()
+        val hash = BCrypt.hashpw(contrasena, salt)
+        return PasswordData(hash = hash, salt = salt)
+    }
+
     fun verificarContrasena(
         contrasena: String,
         hashGuardado: String,
         saltGuardado: String
     ): Boolean {
+        if (hashGuardado.startsWith("$2a$") || hashGuardado.startsWith("$2b$") || hashGuardado.startsWith("$2y$")) {
+            return runCatching { BCrypt.checkpw(contrasena, hashGuardado) }.getOrDefault(false)
+        }
 
         val hashOriginal: ByteArray
         val salt: ByteArray
@@ -62,9 +72,7 @@ object PasswordUtils {
         contrasena: String,
         salt: ByteArray
     ): ByteArray {
-
         val caracteres = contrasena.toCharArray()
-
         val especificacion = PBEKeySpec(
             caracteres,
             salt,
@@ -73,12 +81,8 @@ object PasswordUtils {
         )
 
         return try {
-            val algoritmo = SecretKeyFactory.getInstance(
-                "PBKDF2WithHmacSHA256"
-            )
-
+            val algoritmo = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
             algoritmo.generateSecret(especificacion).encoded
-
         } finally {
             especificacion.clearPassword()
             caracteres.fill('\u0000')

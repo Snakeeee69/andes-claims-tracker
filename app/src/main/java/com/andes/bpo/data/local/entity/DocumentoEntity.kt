@@ -14,5 +14,6 @@ data class DocumentoEntity(
     val estado: String,
     val nombreArchivo: String? = null,
     val rutaUri: String? = null,
-    val fechaRecepcion: String? = null
+    val fechaRecepcion: String? = null,
+    val esImagen: Boolean = false
 )

@@ -31,42 +31,45 @@ interface UsuarioDao {
         usuario: UsuarioEntity
     )
 
+    @Query("SELECT * FROM usuarios ORDER BY rol ASC, nombre ASC")
+    fun obtenerTodosLosUsuarios(): Flow<List<UsuarioEntity>>
 
     @Query(
         """
-    SELECT * FROM usuarios
-    WHERE rol = 'LIQUIDADOR'
-    AND equipo = :equipo
-    ORDER BY nombre, apellido
-    """
+        SELECT * FROM usuarios
+        WHERE rol LIKE 'LIQUIDADOR%'
+        AND equipo = :equipo
+        ORDER BY nombre, apellido
+        """
     )
     fun obtenerLiquidadoresPorEquipo(
         equipo: String
     ): Flow<List<UsuarioEntity>>
 
+    @Query("SELECT * FROM usuarios WHERE rol = 'LIQUIDADOR_RESPALDO' AND equipo = :equipo LIMIT 1")
+    suspend fun obtenerLiquidadorRespaldo(equipo: String): UsuarioEntity?
 
     @Query(
         """
-    UPDATE usuarios
-    SET codigoRecuperacionHash = :codigoHash
-    WHERE idUsuario = :idUsuario
-    """
+        UPDATE usuarios
+        SET codigoRecuperacionHash = :codigoHash
+        WHERE idUsuario = :idUsuario
+        """
     )
     suspend fun guardarCodigoRecuperacion(
         idUsuario: Int,
         codigoHash: String
     ): Int
 
-
     @Query(
         """
-    UPDATE usuarios
-    SET passwordHash = :nuevoHash,
-        passwordSalt = :nuevaSal,
-        codigoRecuperacionHash = NULL
-    WHERE idUsuario = :idUsuario
-      AND codigoRecuperacionHash = :codigoHash
-    """
+        UPDATE usuarios
+        SET passwordHash = :nuevoHash,
+            passwordSalt = :nuevaSal,
+            codigoRecuperacionHash = NULL
+        WHERE idUsuario = :idUsuario
+          AND codigoRecuperacionHash = :codigoHash
+        """
     )
     suspend fun recuperarClaveConCodigo(
         idUsuario: Int,
@@ -74,16 +77,19 @@ interface UsuarioDao {
         nuevoHash: String,
         nuevaSal: String
     ): Int
+
     @Query("SELECT COUNT(*) FROM usuarios WHERE LOWER(correo) = LOWER(:correo) AND idUsuario != :idUsuario")
     suspend fun contarCorreoEnOtrosUsuarios(correo: String, idUsuario: Int): Int
 
-    @Query("""
-    UPDATE usuarios
-    SET nombre = :nombre,
-        apellido = :apellido,
-        correo = :correo
-    WHERE idUsuario = :idUsuario
-""")
+    @Query(
+        """
+        UPDATE usuarios
+        SET nombre = :nombre,
+            apellido = :apellido,
+            correo = :correo
+        WHERE idUsuario = :idUsuario
+        """
+    )
     suspend fun actualizarDatosPerfil(
         idUsuario: Int,
         nombre: String,
@@ -91,16 +97,50 @@ interface UsuarioDao {
         correo: String
     ): Int
 
-    @Query("""
-    UPDATE usuarios
-    SET passwordHash = :nuevoHash,
-        passwordSalt = :nuevaSal,
-        codigoRecuperacionHash = NULL
-    WHERE idUsuario = :idUsuario
-""")
+    @Query(
+        """
+        UPDATE usuarios
+        SET passwordHash = :nuevoHash,
+            passwordSalt = :nuevaSal,
+            codigoRecuperacionHash = NULL
+        WHERE idUsuario = :idUsuario
+        """
+    )
     suspend fun actualizarClaveDesdePerfil(
         idUsuario: Int,
         nuevoHash: String,
         nuevaSal: String
+    ): Int
+
+    @Query(
+        """
+        UPDATE usuarios
+        SET passwordHash = :nuevoHash,
+            passwordSalt = :nuevaSal,
+            requiereCambioClave = 0,
+            codigoRecuperacionHash = NULL
+        WHERE idUsuario = :idUsuario
+        """
+    )
+    suspend fun completarCambioClaveObligatorio(
+        idUsuario: Int,
+        nuevoHash: String,
+        nuevaSal: String
+    ): Int
+
+    @Query(
+        """
+        UPDATE usuarios
+        SET rol = :nuevoRol,
+            equipo = :nuevoEquipo,
+            tipoLiquidador = :tipoLiquidador
+        WHERE idUsuario = :idUsuario
+        """
+    )
+    suspend fun actualizarRolYEquipoAdmin(
+        idUsuario: Int,
+        nuevoRol: String,
+        nuevoEquipo: String?,
+        tipoLiquidador: String?
     ): Int
 }

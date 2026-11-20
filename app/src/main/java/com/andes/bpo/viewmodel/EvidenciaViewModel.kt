@@ -14,8 +14,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,7 +52,7 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val usuario = SesionUsuario.obtenerSesion()
                     ?: error("Debes iniciar sesión")
-                check(usuario.rol == "ASEGURADO") {
+                check(usuario.rol.startsWith("ASEGURADO")) {
                     "Esta pantalla es para el asegurado"
                 }
                 val siniestro = dao.getSiniestroPorId(idSiniestro).first()
@@ -104,6 +104,7 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
                     require(tipoDocumento.isNotBlank()) { "Selecciona el tipo de documento" }
                     val nombreVisible = obtenerNombreOriginal(uri)
                     val archivo = copiarArchivo(uri)
+                    val esArchivoImagen = archivo.extension.lowercase(Locale.ROOT) != "pdf"
                     try {
                         dao.insertDocumento(
                             DocumentoEntity(
@@ -114,7 +115,8 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
                                 estado = "Borrador",
                                 nombreArchivo = nombreVisible ?: archivo.name,
                                 rutaUri = archivo.absolutePath,
-                                fechaRecepcion = null
+                                fechaRecepcion = null,
+                                esImagen = esArchivoImagen
                             )
                         )
                     } catch (e: Exception) {
@@ -196,7 +198,7 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
 
     private suspend fun validarPropietario(idSiniestro: Int, requiereAbierto: Boolean): com.andes.bpo.utils.SesionActiva {
         val usuario = SesionUsuario.obtenerSesion() ?: error("Debes iniciar sesión")
-        check(usuario.rol == "ASEGURADO") { "No tienes permiso para esta acción" }
+        check(usuario.rol.startsWith("ASEGURADO")) { "No tienes permiso para esta acción" }
         val siniestro = dao.getSiniestroPorId(idSiniestro).first()
             ?: error("Siniestro no encontrado")
         check(siniestro.idAsegurado == usuario.idUsuario) { "El siniestro no te pertenece" }

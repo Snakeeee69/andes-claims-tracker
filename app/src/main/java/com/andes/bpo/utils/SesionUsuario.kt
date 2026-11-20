@@ -9,14 +9,15 @@ data class SesionActiva(
     val rut: String,
     val nombre: String,
     val apellido: String,
-    val rol: String
+    val rol: String,
+    val equipo: String? = null,
+    val tipoLiquidador: String? = null,
+    val requiereCambioClave: Boolean = false
 )
 
 object SesionUsuario {
 
-    private val _usuarioActual =
-        MutableStateFlow<SesionActiva?>(null)
-
+    private val _usuarioActual = MutableStateFlow<SesionActiva?>(null)
     val usuarioActual = _usuarioActual.asStateFlow()
 
     fun iniciarSesion(usuario: UsuarioEntity) {
@@ -25,8 +26,15 @@ object SesionUsuario {
             rut = usuario.rut,
             nombre = usuario.nombre,
             apellido = usuario.apellido,
-            rol = usuario.rol
+            rol = usuario.rol,
+            equipo = usuario.equipo,
+            tipoLiquidador = usuario.tipoLiquidador,
+            requiereCambioClave = usuario.requiereCambioClave
         )
+    }
+
+    fun marcarClaveCambiada() {
+        _usuarioActual.value = _usuarioActual.value?.copy(requiereCambioClave = false)
     }
 
     fun obtenerSesion(): SesionActiva? {
