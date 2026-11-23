@@ -1,4 +1,3 @@
-
 package com.andes.bpo.viewmodel
 
 import android.app.Application
@@ -9,6 +8,7 @@ import com.andes.bpo.data.local.entity.SiniestroEntity
 import com.andes.bpo.data.repository.SiniestroRepository
 import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,6 +61,11 @@ class MisSiniestrosViewModel(
                     error = "Debes iniciar sesión nuevamente"
                 )
                 return@launch
+            }
+
+            // Descarga cambios recientes desde MySQL en segundo plano
+            launch(Dispatchers.IO) {
+                repository.sincronizarSiniestrosDeUsuario(usuario.rut, usuario.idUsuario)
             }
 
             try {

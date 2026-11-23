@@ -17,22 +17,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.andes.bpo.data.local.entity.DocumentoEntity
 import com.andes.bpo.ui.theme.PrimaryAndes
+import com.andes.bpo.utils.SesionUsuario
 import com.andes.bpo.viewmodel.EvidenciaViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,11 +54,17 @@ fun EvidenciaScreen(
     val estado by viewModel.uiState.collectAsState()
     val snackbar = remember { SnackbarHostState() }
 
+    val sesion = SesionUsuario.obtenerSesion()
+    val esModoAuditoriaInterna = sesion?.rol == "ANALISTA" ||
+            sesion?.rol == "ADMINISTRADOR" ||
+            sesion?.rol?.startsWith("LIQUIDADOR") == true
+
     var mostrarOpciones by remember { mutableStateOf(false) }
     var tipoDocumento by remember { mutableStateOf("Fotografía del daño") }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
     var tempCameraFile by remember { mutableStateOf<File?>(null) }
     var documentoAEliminar by remember { mutableStateOf<DocumentoEntity?>(null) }
+    var documentoVisorDigital by remember { mutableStateOf<DocumentoEntity?>(null) }
     var errorLocal by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(idSiniestro) { viewModel.cargarEvidencias(idSiniestro) }
@@ -119,7 +130,7 @@ fun EvidenciaScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Evidencias")
+                        Text(if (esModoAuditoriaInterna) "Evidencias del Expediente" else "Evidencias")
                         if (estado.numeroSiniestro.isNotBlank()) {
                             Text(estado.numeroSiniestro, style = MaterialTheme.typography.bodySmall)
                         }
@@ -134,24 +145,35 @@ fun EvidenciaScreen(
         },
         snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
-            if (!estado.cargando && estado.error == null && !estado.cerrado) {
+            if (!esModoAuditoriaInterna && !estado.cargando && estado.error == null && !estado.cerrado) {
                 FloatingActionButton(
                     onClick = { mostrarOpciones = true },
                     containerColor = PrimaryAndes
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Adjuntar evidencia")
+                    Icon(Icons.Default.Add, contentDescription = "Adjuntar evidencia", tint = Color.White)
                 }
             }
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(12.dp))
-            Text("Imágenes y PDF asociados a este siniestro (máximo 15 archivos de 5 MB).")
+            Text(
+                if (esModoAuditoriaInterna) {
+                    "Revisión de documentos solicitados y respaldos adjuntos por el asegurado."
+                } else {
+                    "Imágenes y PDF asociados a este siniestro (máximo 15 archivos de 5 MB)."
+                }
+            )
             if (estado.cerrado) {
-                Text("El caso está cerrado: solo puedes consultar sus documentos.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "El caso está cerrado: solo puedes consultar sus documentos.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             if (estado.guardando) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
@@ -172,7 +194,6 @@ fun EvidenciaScreen(
                     }
                 }
                 estado.error != null && estado.numeroSiniestro.isBlank() -> {
-                    // La consulta inicial falló; no mostramos documentos.
                 }
                 else -> {
                     LazyColumn(
@@ -181,13 +202,13 @@ fun EvidenciaScreen(
                     ) {
                         item {
                             Text(
-                                "Documentos solicitados",
+                                "Documentos solicitados (${estado.solicitudes.size})",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                         if (estado.solicitudes.isEmpty()) {
-                            item { Text("Todavía no te han solicitado documentos.") }
+                            item { Text("No hay solicitudes registradas para este siniestro.") }
                         } else {
                             items(
                                 estado.solicitudes,
@@ -202,14 +223,14 @@ fun EvidenciaScreen(
                                             solicitud.nombreTipoDocumento,
                                             fontWeight = FontWeight.Bold
                                         )
-                                        Text("Estado: ${solicitud.estado}")
+                                        Text("Estado: ${solicitud.estado}", color = MaterialTheme.colorScheme.primary)
                                         if (solicitud.fechaSolicitud.isNotBlank()) {
-                                            Text("Solicitado: ${solicitud.fechaSolicitud}")
+                                            Text("Solicitado: ${solicitud.fechaSolicitud}", fontSize = 12.sp)
                                         }
                                         solicitud.comentario?.takeIf { it.isNotBlank() }?.let {
-                                            Text("Comentario: $it")
+                                            Text("Detalle: $it", fontSize = 13.sp)
                                         }
-                                        if (solicitud.estado == "Pendiente" && !estado.cerrado) {
+                                        if (!esModoAuditoriaInterna && solicitud.estado == "Pendiente" && !estado.cerrado) {
                                             OutlinedButton(
                                                 onClick = {
                                                     tipoDocumento = solicitud.nombreTipoDocumento
@@ -228,7 +249,7 @@ fun EvidenciaScreen(
                         item {
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Archivos adjuntos",
+                                "Archivos adjuntos (${estado.evidencias.size})",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -242,27 +263,32 @@ fun EvidenciaScreen(
                             ) { documento ->
                                 EvidenciaGuardadaCard(
                                     documento = documento,
-                                    cerrado = estado.cerrado,
+                                    cerrado = estado.cerrado || esModoAuditoriaInterna,
                                     procesando = estado.procesandoDocumentoId != null || estado.guardando,
                                     onEnviar = {
                                         viewModel.enviarBorrador(idSiniestro, documento.idDocumento)
                                     },
                                     onEliminar = { documentoAEliminar = documento },
                                     onAbrirPdf = {
-                                        try {
-                                            val archivo = File(documento.rutaUri.orEmpty())
-                                            val uri = FileProvider.getUriForFile(
-                                                context,
-                                                "${context.packageName}.fileprovider",
-                                                archivo
-                                            )
-                                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                                setDataAndType(uri, "application/pdf")
-                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        val ruta = documento.rutaUri.orEmpty()
+                                        val archivo = File(ruta)
+                                        if (ruta.startsWith("local://") || !archivo.exists()) {
+                                            documentoVisorDigital = documento
+                                        } else {
+                                            try {
+                                                val uri = FileProvider.getUriForFile(
+                                                    context,
+                                                    "${context.packageName}.fileprovider",
+                                                    archivo
+                                                )
+                                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                                    setDataAndType(uri, "application/pdf")
+                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                }
+                                                context.startActivity(intent)
+                                            } catch (_: Exception) {
+                                                documentoVisorDigital = documento
                                             }
-                                            context.startActivity(intent)
-                                        } catch (_: Exception) {
-                                            errorLocal = "No se pudo abrir el PDF en este dispositivo"
                                         }
                                     }
                                 )
@@ -274,6 +300,45 @@ fun EvidenciaScreen(
         }
     }
 
+    documentoVisorDigital?.let { doc ->
+        AlertDialog(
+            onDismissRequest = { documentoVisorDigital = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Description, contentDescription = null, tint = PrimaryAndes)
+                    Text(doc.nombreArchivo ?: doc.nombreTipoDocumento, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Tipo documental: ${doc.nombreTipoDocumento}", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                            Text("Estado: ${doc.estado}", fontSize = 12.sp, color = Color(0xFF15803D))
+                            if (!doc.fechaRecepcion.isNullOrBlank()) {
+                                Text("Recepcionado: ${doc.fechaRecepcion}", fontSize = 12.sp)
+                            }
+                            if (!doc.comentario.isNullOrBlank()) {
+                                Text("Observación: ${doc.comentario}", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                    Text(
+                        "Documento validado en el expediente digital de ${estado.numeroSiniestro}.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { documentoVisorDigital = null }) { Text("Cerrar vista") }
+            }
+        )
+    }
+
     if (mostrarOpciones) {
         AlertDialog(
             onDismissRequest = { mostrarOpciones = false },
@@ -283,12 +348,17 @@ fun EvidenciaScreen(
                     Text("Indica qué tipo de documento vas a adjuntar:")
                     listOf(
                         "Fotografía del daño",
-                        "Presupuesto de reparación",
-                        "Denuncia policial",
+                        "Parte Policial / Denuncia",
+                        "Informe de Bomberos",
+                        "Póliza / Guía de Despacho",
+                        "Presupuesto o Factura",
+                        "Orden Médica / Boleta",
                         "Otro documento"
                     ).forEach { opcion ->
                         Row(
-                            modifier = Modifier.fillMaxWidth().clickable { tipoDocumento = opcion },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { tipoDocumento = opcion },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
@@ -353,21 +423,28 @@ private fun EvidenciaGuardadaCard(
     onAbrirPdf: () -> Unit
 ) {
     val ruta = documento.rutaUri.orEmpty()
-    val esPdf = File(ruta).extension.equals("pdf", ignoreCase = true)
+    val esPdfODigital = File(ruta).extension.equals("pdf", ignoreCase = true) ||
+            ruta.startsWith("local://") ||
+            documento.nombreArchivo?.endsWith(".pdf", ignoreCase = true) == true
     val esBorrador = documento.estado == "Borrador"
+
     Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(documento.nombreArchivo ?: "Archivo", fontWeight = FontWeight.Bold)
+            Text(documento.nombreArchivo ?: documento.nombreTipoDocumento, fontWeight = FontWeight.Bold)
             Text("Tipo: ${documento.nombreTipoDocumento}")
             Text("Estado: ${documento.estado}", color = MaterialTheme.colorScheme.primary)
-            if (!esPdf && ruta.isNotBlank()) {
+            if (!documento.fechaRecepcion.isNullOrBlank()) {
+                Text("Fecha: ${documento.fechaRecepcion}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (!esPdfODigital && ruta.isNotBlank()) {
                 val imagen by produceState<ImageBitmap?>(initialValue = null, key1 = ruta) {
                     value = withContext(Dispatchers.IO) {
                         val dimensiones = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                         BitmapFactory.decodeFile(ruta, dimensiones)
+                        if (dimensiones.outWidth <= 0) return@withContext null
                         var escala = 1
                         while (dimensiones.outWidth / escala > 1024 ||
                             dimensiones.outHeight / escala > 1024
@@ -385,9 +462,11 @@ private fun EvidenciaGuardadaCard(
                     )
                 }
             }
-            if (esPdf) {
+            if (esPdfODigital) {
                 OutlinedButton(onClick = onAbrirPdf, modifier = Modifier.fillMaxWidth()) {
-                    Text("Abrir PDF")
+                    Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Ver / Abrir Documento")
                 }
             }
             if (esBorrador && !cerrado) {

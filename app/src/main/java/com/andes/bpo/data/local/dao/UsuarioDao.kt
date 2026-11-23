@@ -25,7 +25,8 @@ interface UsuarioDao {
     suspend fun buscarPorId(
         id: Int
     ): UsuarioEntity?
-
+    @Query("DELETE FROM usuarios WHERE idUsuario = :idUsuario")
+    suspend fun eliminarUsuarioPorId(idUsuario: Int): Int
     @Update
     suspend fun actualizarUsuario(
         usuario: UsuarioEntity

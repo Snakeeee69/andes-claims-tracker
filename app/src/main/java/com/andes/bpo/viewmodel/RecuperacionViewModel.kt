@@ -1,11 +1,14 @@
 package com.andes.bpo.viewmodel
 
 import android.app.Application
+import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.andes.bpo.data.local.AppDatabase
+import com.andes.bpo.data.remote.ConfirmarClaveRequest
+import com.andes.bpo.data.remote.LoginRequest
+import com.andes.bpo.data.remote.RecuperarRequest
+import com.andes.bpo.data.remote.RetrofitClient
 import com.andes.bpo.utils.CodigoRecuperacionUtils
-import com.andes.bpo.utils.PasswordUtils
 import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -14,30 +17,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.Locale
 
 data class RecuperacionUiState(
     val cargando: Boolean = false,
     val error: String? = null,
     val codigoGenerado: String? = null,
+    val codigoEnviadoCorreo: Boolean = false,
+    val mensajeEnvio: String? = null,
     val claveRestablecida: Boolean = false
 )
 
 class RecuperacionViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val usuarioDao = AppDatabase.getDatabase(application, viewModelScope).usuarioDao()
-
     private val _uiState = MutableStateFlow(RecuperacionUiState())
     val uiState = _uiState.asStateFlow()
 
     companion object {
-
         fun normalizarRutRecuperacion(rut: String): String =
             rut.replace(Regex("[^0-9kK]"), "")
                 .uppercase(Locale.ROOT)
 
-        // Devuelve null cuando los datos son válidos; de lo contrario,
-        // devuelve el mensaje que verá el usuario.
         fun validarDatosRecuperacion(
             rutIngresado: String,
             codigoIngresado: String,
@@ -80,23 +81,38 @@ class RecuperacionViewModel(application: Application) : AndroidViewModel(applica
                 val codigo = withContext(Dispatchers.IO) {
                     val sesion = SesionUsuario.obtenerSesion()
                         ?: error("Debes iniciar sesión para configurar la recuperación")
-                    val usuario = usuarioDao.buscarPorId(sesion.idUsuario)
-                        ?: error("No se encontró la cuenta")
 
-                    check(
-                        PasswordUtils.verificarContrasena(
-                            contrasenaActual,
-                            usuario.passwordHash,
-                            usuario.passwordSalt
-                        )
-                    ) { "La contraseña actual no es correcta" }
+                    val loginResp = RetrofitClient.api.login(
+                        LoginRequest(sesion.rut, contrasenaActual)
+                    )
+                    if (!loginResp.isSuccessful || loginResp.body() == null) {
+                        error("La contraseña actual no es correcta")
+                    }
+
+                    val authBody = loginResp.body()!!
+                    RetrofitClient.jwtToken = authBody.token
 
                     val nuevoCodigo = CodigoRecuperacionUtils.generarCodigo()
-                    val filas = usuarioDao.guardarCodigoRecuperacion(
-                        idUsuario = usuario.idUsuario,
-                        codigoHash = CodigoRecuperacionUtils.obtenerHash(nuevoCodigo)
+                    val codigoHash = CodigoRecuperacionUtils.obtenerHash(nuevoCodigo)
+
+                    val usuarioSanitizado = RetrofitClient.sanitizarUsuario(authBody.usuario)
+                    val usuarioActualizado = usuarioSanitizado.copy(
+                        codigoRecuperacionHash = codigoHash
                     )
-                    check(filas == 1) { "No se pudo guardar el código" }
+                    RetrofitClient.usuarioLogueado = usuarioActualizado
+
+                    val updateResp = RetrofitClient.api.actualizarUsuario(
+                        sesion.idUsuario,
+                        usuarioActualizado
+                    )
+                    if (!updateResp.isSuccessful) {
+                        val msg = RetrofitClient.extraerMensajeError(
+                            updateResp.errorBody()?.string(),
+                            "No se pudo guardar el código en el servidor"
+                        )
+                        throw Exception(msg)
+                    }
+
                     nuevoCodigo
                 }
                 _uiState.update {
@@ -104,11 +120,86 @@ class RecuperacionViewModel(application: Application) : AndroidViewModel(applica
                 }
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        error = "Sin conexión con el servidor (10.0.2.2:8080)"
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         cargando = false,
                         error = e.message ?: "No se pudo generar el código"
+                    )
+                }
+            }
+        }
+    }
+
+    fun solicitarCodigoCorreo(rutIngresado: String, correoIngresado: String) {
+        if (_uiState.value.cargando) return
+
+        val rut = normalizarRutRecuperacion(rutIngresado)
+        val correo = correoIngresado.trim()
+
+        if (!rut.matches(Regex("[0-9]{7,8}[0-9K]"))) {
+            _uiState.update { it.copy(error = "Ingresa un RUT válido") }
+            return
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+            _uiState.update { it.copy(error = "Ingresa un correo electrónico válido") }
+            return
+        }
+
+        _uiState.update {
+            it.copy(
+                cargando = true,
+                error = null,
+                codigoEnviadoCorreo = false,
+                mensajeEnvio = null
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                val mensaje = withContext(Dispatchers.IO) {
+                    val response = RetrofitClient.api.solicitarCodigo(
+                        RecuperarRequest(rut = rut, correo = correo)
+                    )
+                    if (response.isSuccessful) {
+                        response.body()?.mensaje ?: "Código de 6 dígitos enviado a $correo"
+                    } else {
+                        val msg = RetrofitClient.extraerMensajeError(
+                            response.errorBody()?.string(),
+                            "El RUT y el correo no coinciden"
+                        )
+                        throw Exception(msg)
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        codigoEnviadoCorreo = true,
+                        mensajeEnvio = mensaje,
+                        error = null
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        error = "Sin conexión con el servidor para enviar el correo"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        error = e.message ?: "No se pudo enviar el código de verificación"
                     )
                 }
             }
@@ -136,31 +227,39 @@ class RecuperacionViewModel(application: Application) : AndroidViewModel(applica
                     require(errorDatos == null) { errorDatos ?: "Datos inválidos" }
 
                     val rut = normalizarRutRecuperacion(rutIngresado)
-
-                    val usuario = usuarioDao.buscarPorRut(rut)
-                        ?: error("El RUT o el código de recuperación no es correcto")
-                    val hashCodigo = CodigoRecuperacionUtils.obtenerHash(codigoIngresado)
-                    check(usuario.codigoRecuperacionHash == hashCodigo) {
-                        "El RUT o el código de recuperación no es correcto"
-                    }
-
-                    val nueva = PasswordUtils.generarHash(nuevaClave)
-                    val filas = usuarioDao.recuperarClaveConCodigo(
-                        idUsuario = usuario.idUsuario,
-                        codigoHash = hashCodigo,
-                        nuevoHash = nueva.hash,
-                        nuevaSal = nueva.salt
+                    val response = RetrofitClient.api.confirmarNuevaClave(
+                        ConfirmarClaveRequest(
+                            rut = rut,
+                            codigo = codigoIngresado.trim(),
+                            nuevaClave = nuevaClave
+                        )
                     )
-                    check(filas == 1) { "El código ya no es válido" }
+                    if (!response.isSuccessful) {
+                        val msg = RetrofitClient.extraerMensajeError(
+                            response.errorBody()?.string(),
+                            "Código de recuperación inválido o expirado"
+                        )
+                        throw Exception(msg)
+                    }
                 }
                 _uiState.update {
                     it.copy(cargando = false, claveRestablecida = true, error = null)
                 }
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        cargando = false,
+                        error = "Sin conexión con el servidor (10.0.2.2:8080)"
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(cargando = false, error = e.message ?: "No se pudo recuperar la contraseña")
+                    it.copy(
+                        cargando = false,
+                        error = e.message ?: "No se pudo recuperar la contraseña"
+                    )
                 }
             }
         }

@@ -52,14 +52,27 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val usuario = SesionUsuario.obtenerSesion()
                     ?: error("Debes iniciar sesión")
-                check(usuario.rol.startsWith("ASEGURADO")) {
-                    "Esta pantalla es para el asegurado"
+
+                val esAsegurado = usuario.rol.startsWith("ASEGURADO")
+                val esAnalistaOAdmin = usuario.rol == "ANALISTA" || usuario.rol == "ADMINISTRADOR"
+                val esLiquidador = usuario.rol.startsWith("LIQUIDADOR")
+
+                check(esAsegurado || esAnalistaOAdmin || esLiquidador) {
+                    "No tienes permiso para ver estas evidencias"
                 }
+
                 val siniestro = dao.getSiniestroPorId(idSiniestro).first()
                     ?: error("Siniestro no encontrado")
-                check(siniestro.idAsegurado == usuario.idUsuario) {
-                    "No tienes acceso a este siniestro"
+
+                when {
+                    esAsegurado -> check(siniestro.idAsegurado == usuario.idUsuario) {
+                        "No tienes acceso a este siniestro"
+                    }
+                    esLiquidador -> check(siniestro.idLiquidador == usuario.idUsuario) {
+                        "Este siniestro no está asignado a ti"
+                    }
                 }
+
                 combine(
                     dao.getEvidenciasPorSiniestro(idSiniestro),
                     dao.getSolicitudesPorSiniestro(idSiniestro),
@@ -67,15 +80,21 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
                 ) { evidencias, solicitudes, casoActual ->
                     Triple(evidencias, solicitudes, casoActual)
                 }.collectLatest { (evidencias, solicitudes, casoActual) ->
-                    check(casoActual != null && casoActual.idAsegurado == usuario.idUsuario) {
-                        "No tienes acceso a este siniestro"
+                    check(casoActual != null) { "Siniestro no encontrado" }
+
+                    // Analista, Admin y Liquidador ven las evidencias en modo lectura (sin borradores privados)
+                    val evidenciasVisibles = if (esAsegurado) {
+                        evidencias
+                    } else {
+                        evidencias.filter { it.estado != "Borrador" }
                     }
+
                     _uiState.update {
                         it.copy(
                             cargando = false,
                             numeroSiniestro = casoActual.numero,
-                            cerrado = casoActual.etapaNombre == "Cerrado",
-                            evidencias = evidencias,
+                            cerrado = casoActual.etapaNombre == "Cerrado" || !esAsegurado,
+                            evidencias = evidenciasVisibles,
                             solicitudes = solicitudes,
                             error = null
                         )

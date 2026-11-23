@@ -14,6 +14,9 @@ interface SiniestroDao {
     @Query("SELECT * FROM siniestros WHERE idAsegurado = :idUsuario ORDER BY idSiniestro DESC")
     fun getSiniestrosPorUsuario(idUsuario: Int): Flow<List<SiniestroEntity>>
 
+    @Query("SELECT * FROM siniestros ORDER BY idSiniestro DESC")
+    fun getTodosLosSiniestros(): Flow<List<SiniestroEntity>>
+
     @Query("SELECT * FROM siniestros WHERE idSiniestro = :idSiniestro LIMIT 1")
     fun getSiniestroPorId(idSiniestro: Int): Flow<SiniestroEntity?>
 
@@ -28,6 +31,9 @@ interface SiniestroDao {
 
     @Query("SELECT * FROM gestiones WHERE idSiniestro = :idSiniestro AND visibleAsegurado = 1 ORDER BY idGestion DESC")
     fun getGestionesVisibles(idSiniestro: Int): Flow<List<GestionEntity>>
+
+    @Query("SELECT * FROM gestiones WHERE idSiniestro = :idSiniestro ORDER BY idGestion DESC")
+    fun getTodasLasGestiones(idSiniestro: Int): Flow<List<GestionEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGestion(gestion: GestionEntity): Long
@@ -55,6 +61,9 @@ interface SiniestroDao {
 
     @Query("UPDATE avisos SET leido = 1, estadoAviso = :nuevoEstado WHERE idAviso = :idAviso")
     suspend fun actualizarEstadoAviso(idAviso: Int, nuevoEstado: String)
+
+    @Query("SELECT * FROM usuarios WHERE rol IN ('ANALISTA', 'ADMINISTRADOR')")
+    suspend fun obtenerAnalistasYAdmins(): List<UsuarioEntity>
 
     @Query("SELECT * FROM siniestros WHERE idSiniestro = :id LIMIT 1")
     suspend fun obtenerSiniestroActual(id: Int): SiniestroEntity?
@@ -141,6 +150,17 @@ interface SiniestroDao {
                 visibleAsegurado = true
             )
         )
+
+        insertAviso(
+            AvisoEntity(
+                fechaHora = fechaHora,
+                mensaje = "Tu siniestro ${siniestro.numero} avanzó a etapa En liquidación.",
+                leido = false,
+                idUsuario = siniestro.idAsegurado,
+                requiereAccion = false,
+                estadoAviso = "PENDIENTE"
+            )
+        )
     }
 
     @Query(
@@ -162,10 +182,10 @@ interface SiniestroDao {
         SET idLiquidador = :idLiquidador,
             liquidadorNombre = :nombreLiquidador,
             etapaNombre = 'En evaluación',
+            aceptadoPorLiquidador = NULL,
+            motivoRechazoLiquidador = NULL,
             proximoPasoTexto = 'Un liquidador está revisando tu caso.'
         WHERE idSiniestro = :idSiniestro
-          AND idLiquidador IS NULL
-          AND etapaNombre = 'Recibido'
         """
     )
     suspend fun actualizarAsignacion(
@@ -184,7 +204,7 @@ interface SiniestroDao {
         val analista = obtenerUsuarioParaAsignacion(idAnalista)
             ?: error("Analista no encontrado")
 
-        check(analista.rol == "ANALISTA") {
+        check(analista.rol == "ANALISTA" || analista.rol == "ADMINISTRADOR") {
             "No tienes permiso para asignar siniestros"
         }
 
@@ -198,19 +218,19 @@ interface SiniestroDao {
         val siniestro = obtenerSiniestroActual(idSiniestro)
             ?: error("Siniestro no encontrado")
 
-        check(siniestro.etapaNombre == "Recibido" && siniestro.idLiquidador == null) {
-            "El siniestro ya fue asignado o cambió de etapa"
-        }
-
         val tipo = siniestro.tipoSiniestroNombre.trim()
 
         val equipoNecesario = when {
-            tipo.startsWith("Vehículo", ignoreCase = true) ||
+            siniestro.idArea == 1 ||
+                    tipo.startsWith("Vehículo", ignoreCase = true) ||
                     tipo.startsWith("Vehiculo", ignoreCase = true) ||
                     tipo.equals("Colisión", ignoreCase = true) ||
                     tipo.equals("Choque", ignoreCase = true) -> "VEHICULOS"
-            tipo.startsWith("Hogar", ignoreCase = true) -> "HOGAR"
-            tipo.startsWith("Salud", ignoreCase = true) ||
+            siniestro.idArea == 2 ||
+                    tipo.startsWith("Hogar", ignoreCase = true) ||
+                    tipo.contains("Incendio", ignoreCase = true) -> "HOGAR"
+            siniestro.idArea == 3 ||
+                    tipo.startsWith("Salud", ignoreCase = true) ||
                     tipo.startsWith("Vida", ignoreCase = true) -> "SALUD"
             else -> error("No se puede determinar el equipo de este siniestro")
         }
@@ -246,6 +266,28 @@ interface SiniestroDao {
                 descripcion = "Tu caso fue asignado a $nombreAsignado. Ahora está en evaluación.",
                 responsable = analista.nombre,
                 visibleAsegurado = true
+            )
+        )
+
+        insertAviso(
+            AvisoEntity(
+                fechaHora = fechaHora,
+                mensaje = "Nuevo caso asignado: ${siniestro.numero} (${siniestro.tipoSiniestroNombre}). Tienes 2 días hábiles para aceptar o rechazar.",
+                leido = false,
+                idUsuario = idLiquidador,
+                requiereAccion = true,
+                estadoAviso = "PENDIENTE"
+            )
+        )
+
+        insertAviso(
+            AvisoEntity(
+                fechaHora = fechaHora,
+                mensaje = "Tu siniestro ${siniestro.numero} fue asignado a $nombreAsignado.",
+                leido = false,
+                idUsuario = siniestro.idAsegurado,
+                requiereAccion = false,
+                estadoAviso = "PENDIENTE"
             )
         )
     }
@@ -399,6 +441,30 @@ interface SiniestroDao {
                 visibleAsegurado = true
             )
         )
+
+        insertAviso(
+            AvisoEntity(
+                fechaHora = fechaHora,
+                mensaje = "Tu siniestro ${siniestro.numero} ha sido cerrado con resultado: $resultado.",
+                leido = false,
+                idUsuario = siniestro.idAsegurado,
+                requiereAccion = false,
+                estadoAviso = "PENDIENTE"
+            )
+        )
+
+        obtenerAnalistasYAdmins().forEach { analista ->
+            insertAviso(
+                AvisoEntity(
+                    fechaHora = fechaHora,
+                    mensaje = "Siniestro ${siniestro.numero} cerrado ($resultado) por ${liquidador.nombre} ${liquidador.apellido}.",
+                    leido = false,
+                    idUsuario = analista.idUsuario,
+                    requiereAccion = false,
+                    estadoAviso = "PENDIENTE"
+                )
+            )
+        }
     }
 
     @Query(
@@ -505,6 +571,32 @@ interface SiniestroDao {
                 visibleAsegurado = true
             )
         )
+
+        siniestro.idLiquidador?.let { idLiq ->
+            insertAviso(
+                AvisoEntity(
+                    fechaHora = fechaHora,
+                    mensaje = "Nueva evidencia adjunta en ${siniestro.numero}: ${borrador.nombreTipoDocumento}.",
+                    leido = false,
+                    idUsuario = idLiq,
+                    requiereAccion = true,
+                    estadoAviso = "PENDIENTE"
+                )
+            )
+        }
+
+        obtenerAnalistasYAdmins().forEach { analista ->
+            insertAviso(
+                AvisoEntity(
+                    fechaHora = fechaHora,
+                    mensaje = "El asegurado subió evidencia (${borrador.nombreTipoDocumento}) en el caso ${siniestro.numero}.",
+                    leido = false,
+                    idUsuario = analista.idUsuario,
+                    requiereAccion = false,
+                    estadoAviso = "PENDIENTE"
+                )
+            )
+        }
     }
 
     @Query(
@@ -588,6 +680,17 @@ interface SiniestroDao {
                 visibleAsegurado = true
             )
         )
+
+        insertAviso(
+            AvisoEntity(
+                fechaHora = fechaHora,
+                mensaje = "Documento solicitado en ${siniestro.numero}: $tipo ($comentarioLimpio).",
+                leido = false,
+                idUsuario = siniestro.idAsegurado,
+                requiereAccion = true,
+                estadoAviso = "PENDIENTE"
+            )
+        )
     }
 
     @Query(
@@ -669,6 +772,19 @@ interface SiniestroDao {
                 visibleAsegurado = true
             )
         )
+
+        siniestro.idLiquidador?.let { idLiq ->
+            insertAviso(
+                AvisoEntity(
+                    fechaHora = fechaHora,
+                    mensaje = "Prórroga de $diasProrroga días aplicada al caso ${siniestro.numero}.",
+                    leido = false,
+                    idUsuario = idLiq,
+                    requiereAccion = false,
+                    estadoAviso = "PENDIENTE"
+                )
+            )
+        }
     }
 
     @Transaction
@@ -697,14 +813,27 @@ interface SiniestroDao {
                 visibleAsegurado = true
             )
         )
+
+        obtenerAnalistasYAdmins().forEach { analista ->
+            insertAviso(
+                AvisoEntity(
+                    fechaHora = fechaHora,
+                    mensaje = "${liq.nombre} ${liq.apellido} aceptó el caso ${siniestro.numero}.",
+                    leido = false,
+                    idUsuario = analista.idUsuario,
+                    requiereAccion = false,
+                    estadoAviso = "PENDIENTE"
+                )
+            )
+        }
     }
 
     @Transaction
     suspend fun rechazarYDerivarALiquidador2(
         idSiniestro: Int,
         idLiquidador1: Int,
-        idLiquidador2: Int,
-        nombreLiquidador2: String,
+        idLiquidador2: Int?,
+        nombreLiquidador2: String?,
         motivoRechazo: String,
         fechaHora: String
     ) {
@@ -716,10 +845,15 @@ interface SiniestroDao {
         actualizarSiniestro(
             siniestro.copy(
                 idLiquidador = idLiquidador2,
-                liquidadorNombre = "$nombreLiquidador2 (Respaldo)",
+                liquidadorNombre = if (idLiquidador2 != null) "$nombreLiquidador2 (Respaldo)" else "Por reasignar",
+                etapaNombre = if (idLiquidador2 != null) "En evaluación" else "Recibido",
                 aceptadoPorLiquidador = null,
                 motivoRechazoLiquidador = motivoRechazo.trim(),
-                proximoPasoTexto = "Caso reasignado a liquidador de respaldo."
+                proximoPasoTexto = if (idLiquidador2 != null) {
+                    "Caso reasignado a liquidador de respaldo."
+                } else {
+                    "Caso rechazado por liquidador; pendiente de reasignación."
+                }
             )
         )
 
@@ -727,10 +861,23 @@ interface SiniestroDao {
             GestionEntity(
                 idSiniestro = idSiniestro,
                 fechaHora = fechaHora,
-                descripcion = "Liquidador ${liq1.nombre} ${liq1.apellido} rechazó la asignación (${motivoRechazo.trim()}). Caso derivado a $nombreLiquidador2.",
+                descripcion = "Liquidador ${liq1.nombre} ${liq1.apellido} rechazó la asignación (${motivoRechazo.trim()}).",
                 responsable = "${liq1.nombre} ${liq1.apellido}",
                 visibleAsegurado = true
             )
         )
+
+        obtenerAnalistasYAdmins().forEach { analista ->
+            insertAviso(
+                AvisoEntity(
+                    fechaHora = fechaHora,
+                    mensaje = "URGENTE: ${liq1.nombre} ${liq1.apellido} rechazó ${siniestro.numero} (${motivoRechazo.trim()}). Requiere revisión.",
+                    leido = false,
+                    idUsuario = analista.idUsuario,
+                    requiereAccion = true,
+                    estadoAviso = "PENDIENTE"
+                )
+            )
+        }
     }
 }

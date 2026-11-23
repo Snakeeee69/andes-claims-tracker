@@ -3,12 +3,10 @@ package com.andes.bpo.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.andes.bpo.data.local.AppDatabase
-import com.andes.bpo.data.local.entity.UsuarioEntity
+import com.andes.bpo.data.remote.CambioClaveObligatorioRequest
 import com.andes.bpo.data.remote.LoginRequest
 import com.andes.bpo.data.remote.RetrofitClient
 import com.andes.bpo.model.LoginUiState
-import com.andes.bpo.utils.PasswordUtils
 import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,15 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class LoginViewModel(
     application: Application
 ) : AndroidViewModel(application) {
-
-    private val usuarioDao = AppDatabase.getDatabase(
-        application,
-        viewModelScope
-    ).usuarioDao()
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -99,72 +93,38 @@ class LoginViewModel(
 
         viewModelScope.launch {
             try {
-                val usuarioValido = withContext(Dispatchers.IO) {
-                    try {
-                        val response = RetrofitClient.api.login(
-                            LoginRequest(rutActual, contrasenaActual)
+                val usuarioRemoto = withContext(Dispatchers.IO) {
+                    val response = RetrofitClient.api.login(
+                        LoginRequest(rutActual, contrasenaActual)
+                    )
+
+                    if (response.isSuccessful && response.body() != null) {
+                        val authBody = response.body()!!
+                        val usuarioLimpio = RetrofitClient.sanitizarUsuario(authBody.usuario)
+                        RetrofitClient.jwtToken = authBody.token
+                        RetrofitClient.usuarioLogueado = usuarioLimpio
+                        usuarioLimpio
+                    } else if (response.code() == 401) {
+                        null
+                    } else {
+                        val msg = RetrofitClient.extraerMensajeError(
+                            response.errorBody()?.string(),
+                            "Error del servidor (${response.code()})"
                         )
-
-                        if (response.isSuccessful && response.body() != null) {
-                            val authBody = response.body()!!
-                            RetrofitClient.jwtToken = authBody.token
-
-                            val remoto = authBody.usuario
-                            val hashLocal = PasswordUtils.generarHash(contrasenaActual)
-
-                            val usuarioSincronizado = UsuarioEntity(
-                                idUsuario = remoto.idUsuario,
-                                rut = remoto.rut,
-                                nombre = remoto.nombre,
-                                apellido = remoto.apellido,
-                                correo = remoto.correo,
-                                passwordHash = hashLocal.hash,
-                                passwordSalt = hashLocal.salt,
-                                rol = remoto.rol.ifBlank { "ASEGURADO_NATURAL" },
-                                equipo = remoto.equipo,
-                                tipoLiquidador = remoto.tipoLiquidador,
-                                idArea = remoto.idArea,
-                                requiereCambioClave = remoto.requiereCambioClave
-                            )
-
-                            if (usuarioDao.buscarPorRut(rutActual) == null) {
-                                runCatching {
-                                    usuarioDao.registrarUsuario(usuarioSincronizado)
-                                }
-                            }
-
-                            usuarioSincronizado
-                        } else if (response.code() == 401) {
-                            null
-                        } else {
-                            throw Exception("Error del servidor (${response.code()})")
-                        }
-                    } catch (networkError: java.io.IOException) {
-                        val usuarioLocal = usuarioDao.buscarPorRut(rutActual)
-                        if (usuarioLocal != null &&
-                            PasswordUtils.verificarContrasena(
-                                contrasenaActual,
-                                usuarioLocal.passwordHash,
-                                usuarioLocal.passwordSalt
-                            )
-                        ) {
-                            usuarioLocal
-                        } else {
-                            null
-                        }
+                        throw Exception(msg)
                     }
                 }
 
-                if (usuarioValido != null) {
-                    SesionUsuario.iniciarSesion(usuarioValido)
-                    val exigeCambio = usuarioValido.requiereCambioClave || contrasenaActual == "123456"
+                if (usuarioRemoto != null) {
+                    SesionUsuario.iniciarSesion(usuarioRemoto)
+                    val exigeCambio = usuarioRemoto.requiereCambioClave || contrasenaActual == "123456"
 
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             isLoginSuccessful = true,
                             requiereCambioClave = exigeCambio,
-                            usuarioAutenticado = usuarioValido,
+                            usuarioAutenticado = usuarioRemoto,
                             contrasena = "",
                             error = null
                         )
@@ -176,6 +136,13 @@ class LoginViewModel(
                             error = "RUT o contraseña incorrectos"
                         )
                     }
+                }
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Sin conexión con el servidor (10.0.2.2:8080)"
+                    )
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -210,17 +177,28 @@ class LoginViewModel(
         viewModelScope.launch {
             try {
                 val sesion = SesionUsuario.obtenerSesion() ?: error("Sesión no activa")
-                val hashData = PasswordUtils.generarHash(nuevaClave)
+
                 withContext(Dispatchers.IO) {
-                    usuarioDao.completarCambioClaveObligatorio(
-                        idUsuario = sesion.idUsuario,
-                        nuevoHash = hashData.hash,
-                        nuevaSal = hashData.salt
+                    val response = RetrofitClient.api.cambiarClaveObligatoria(
+                        CambioClaveObligatorioRequest(
+                            idUsuario = sesion.idUsuario,
+                            nuevaClave = nuevaClave
+                        )
                     )
+                    if (!response.isSuccessful) {
+                        val msg = RetrofitClient.extraerMensajeError(
+                            response.errorBody()?.string(),
+                            "No se pudo actualizar la contraseña (${response.code()})"
+                        )
+                        throw Exception(msg)
+                    }
                 }
+
                 SesionUsuario.marcarClaveCambiada()
                 _uiState.update { it.copy(requiereCambioClave = false) }
                 onExito()
+            } catch (e: IOException) {
+                onError("Sin conexión con el servidor (10.0.2.2:8080)")
             } catch (e: Exception) {
                 onError(e.message ?: "No se pudo actualizar la contraseña")
             }

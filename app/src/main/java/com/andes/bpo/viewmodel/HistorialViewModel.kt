@@ -8,6 +8,7 @@ import com.andes.bpo.data.local.entity.GestionEntity
 import com.andes.bpo.data.repository.SiniestroRepository
 import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,13 +63,30 @@ class HistorialViewModel(
                     return@launch
                 }
 
+                val esAsegurado = usuario.rol.startsWith("ASEGURADO")
+                val esAnalistaOAdmin = usuario.rol == "ANALISTA" || usuario.rol == "ADMINISTRADOR"
+                val esLiquidador = usuario.rol.startsWith("LIQUIDADOR")
+
                 val siniestro = repository
                     .getSiniestroPorId(idSiniestro)
                     .first()
 
-                if (siniestro == null ||
-                    siniestro.idAsegurado != usuario.idUsuario
-                ) {
+                if (siniestro == null) {
+                    _uiState.value = HistorialUiState(
+                        cargando = false,
+                        error = "Siniestro no encontrado"
+                    )
+                    return@launch
+                }
+
+                val tieneAcceso = when {
+                    esAnalistaOAdmin -> true
+                    esAsegurado -> siniestro.idAsegurado == usuario.idUsuario
+                    esLiquidador -> siniestro.idLiquidador == usuario.idUsuario
+                    else -> false
+                }
+
+                if (!tieneAcceso) {
                     _uiState.value = HistorialUiState(
                         cargando = false,
                         error = "No tienes acceso a este siniestro"
@@ -76,16 +94,24 @@ class HistorialViewModel(
                     return@launch
                 }
 
-                repository.getGestiones(idSiniestro)
-                    .collectLatest { lista ->
+                launch(Dispatchers.IO) {
+                    repository.sincronizarHistorialDeSiniestro(idSiniestro)
+                }
 
-                        _uiState.value = HistorialUiState(
-                            cargando = false,
-                            numeroSiniestro = siniestro.numero,
-                            etapaActual = siniestro.etapaNombre,
-                            gestiones = lista
-                        )
-                    }
+                val flujoGestiones = if (esAsegurado) {
+                    repository.getGestiones(idSiniestro)
+                } else {
+                    db.siniestroDao().getTodasLasGestiones(idSiniestro)
+                }
+
+                flujoGestiones.collectLatest { lista ->
+                    _uiState.value = HistorialUiState(
+                        cargando = false,
+                        numeroSiniestro = siniestro.numero,
+                        etapaActual = siniestro.etapaNombre,
+                        gestiones = lista
+                    )
+                }
 
             } catch (e: CancellationException) {
                 throw e

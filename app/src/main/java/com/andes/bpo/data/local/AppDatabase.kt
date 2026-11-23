@@ -173,8 +173,8 @@ abstract class AppDatabase : RoomDatabase() {
             db.areaDao().asegurarAreasIniciales()
 
             val usuarioDao = db.usuarioDao()
+            val siniestroDao = db.siniestroDao()
             val passBase = PasswordUtils.generarHash("Andes2026!")
-            val passProvisoria = PasswordUtils.generarHash("123456")
 
             val usuariosOficiales = listOf(
                 UsuarioEntity(
@@ -184,7 +184,8 @@ abstract class AppDatabase : RoomDatabase() {
                     correo = "camila.soto@correo.cl",
                     passwordHash = passBase.hash,
                     passwordSalt = passBase.salt,
-                    rol = "ASEGURADO_NATURAL"
+                    rol = "ASEGURADO_NATURAL",
+                    aseguradora = "BCI Seguros"
                 ),
                 UsuarioEntity(
                     rut = "761234560",
@@ -193,7 +194,19 @@ abstract class AppDatabase : RoomDatabase() {
                     correo = "siniestros@tpacifico.cl",
                     passwordHash = passBase.hash,
                     passwordSalt = passBase.salt,
-                    rol = "ASEGURADO_EMPRESA"
+                    rol = "ASEGURADO_EMPRESA",
+                    aseguradora = "HDI Seguros"
+                ),
+                UsuarioEntity(
+                    rut = "765432103",
+                    nombre = "Pollos Hermanos",
+                    apellido = "SpA",
+                    correo = "contacto@polloshermanos.cl",
+                    passwordHash = passBase.hash,
+                    passwordSalt = passBase.salt,
+                    rol = "ASEGURADO_EMPRESA",
+                    direccion = "Av. Matta 1420, Santiago",
+                    aseguradora = "Chilena Consolidada (Zurich)"
                 ),
                 UsuarioEntity(
                     rut = "222222222",
@@ -222,7 +235,7 @@ abstract class AppDatabase : RoomDatabase() {
                     passwordSalt = passBase.salt,
                     rol = "LIQUIDADOR_EXTERNO",
                     equipo = "VEHICULOS",
-                    tipoLiquidador = "EXTERNO",
+                    tipoLiquidador = "VEHICULOS",
                     idArea = 1
                 ),
                 UsuarioEntity(
@@ -230,19 +243,191 @@ abstract class AppDatabase : RoomDatabase() {
                     nombre = "Elena",
                     apellido = "Vargas",
                     correo = "e.vargas@liquidadores.cl",
-                    passwordHash = passProvisoria.hash,
-                    passwordSalt = passProvisoria.salt,
-                    rol = "LIQUIDADOR_RESPALDO",
-                    equipo = "VEHICULOS",
-                    tipoLiquidador = "RESPALDO",
-                    idArea = 1,
-                    requiereCambioClave = true
+                    passwordHash = passBase.hash,
+                    passwordSalt = passBase.salt,
+                    rol = "LIQUIDADOR_EXTERNO",
+                    equipo = "SALUD",
+                    tipoLiquidador = "SALUD",
+                    idArea = 3,
+                    requiereCambioClave = false
+                ),
+                UsuarioEntity(
+                    rut = "666666666",
+                    nombre = "Nacho",
+                    apellido = "Vargas",
+                    correo = "n.vargas@liquidadores.cl",
+                    passwordHash = passBase.hash,
+                    passwordSalt = passBase.salt,
+                    rol = "LIQUIDADOR_EXTERNO",
+                    equipo = "HOGAR",
+                    tipoLiquidador = "HOGAR",
+                    idArea = 2
                 )
             )
 
             usuariosOficiales.forEach { usuario ->
-                if (usuarioDao.buscarPorRut(usuario.rut) == null) {
+                val existente = usuarioDao.buscarPorRut(usuario.rut)
+                if (existente == null) {
                     usuarioDao.registrarUsuario(usuario)
+                } else if (usuario.rut in listOf("444444444", "555555555", "666666666")) {
+                    usuarioDao.actualizarUsuario(
+                        existente.copy(
+                            nombre = usuario.nombre,
+                            apellido = usuario.apellido,
+                            rol = usuario.rol,
+                            equipo = usuario.equipo,
+                            tipoLiquidador = usuario.tipoLiquidador,
+                            idArea = usuario.idArea,
+                            requiereCambioClave = false
+                        )
+                    )
+                }
+            }
+
+            val pollosHermanos = usuarioDao.buscarPorRut("765432103")
+            val analistaRodrigo = usuarioDao.buscarPorRut("222222222")
+            val adminAndes = usuarioDao.buscarPorRut("333333333")
+
+            if (pollosHermanos != null) {
+                val existente9001 = siniestroDao.obtenerSiniestroActual(9001)
+                if (existente9001 == null || existente9001.numero == "SIN-2026-8842") {
+                    siniestroDao.insertSiniestro(
+                        SiniestroEntity(
+                            idSiniestro = 9001,
+                            numero = "SIN-2026-8850",
+                            idAsegurado = pollosHermanos.idUsuario,
+                            companiaNombre = "HDI Seguros",
+                            numeroPoliza = "POL-FLT-40912",
+                            tipoSiniestroNombre = "Vehículo - Robo con Intimidación en Ruta",
+                            modeloVehiculo = "Flota Camiones Frigoríficos Scania P320 (2 unidades)",
+                            fechaOcurrencia = "20/11/2026",
+                            fechaReporte = "21/11/2026 08:15",
+                            comunaNombre = "Lampa (Ruta 5 Norte)",
+                            descripcion = "Asalto armado en carretera a dos camiones frigoríficos de distribución de Pollos Hermanos SpA durante traslado de carga entre centros.",
+                            etapaNombre = "Recibido",
+                            liquidadorNombre = "Por asignar",
+                            proximoPasoTexto = "En revisión por Analista para asignar liquidador de Vehículos.",
+                            idArea = 1
+                        )
+                    )
+
+                    if (existente9001 == null) {
+                        siniestroDao.insertGestion(
+                            GestionEntity(
+                                idSiniestro = 9001,
+                                fechaHora = "21/11/2026 08:15",
+                                descripcion = "Denuncio ingresado por Pollos Hermanos SpA: Robo de camiones frigoríficos en Ruta 5 Norte.",
+                                responsable = "Pollos Hermanos SpA",
+                                visibleAsegurado = true
+                            )
+                        )
+                        siniestroDao.insertDocumento(
+                            DocumentoEntity(
+                                idSiniestro = 9001,
+                                nombreTipoDocumento = "Parte Policial Carabineros",
+                                comentario = "Constancia de robo con intimidación en carretera",
+                                fechaSolicitud = "21/11/2026 08:15",
+                                estado = "Entregado",
+                                nombreArchivo = "Parte_Policial_Camiones_Ruta5.pdf",
+                                rutaUri = "local://parte_camiones_pollos",
+                                fechaRecepcion = "21/11/2026 08:15"
+                            )
+                        )
+                        siniestroDao.insertDocumento(
+                            DocumentoEntity(
+                                idSiniestro = 9001,
+                                nombreTipoDocumento = "Padrón y Guía de Despacho",
+                                comentario = "Acreditación de flota y carga transportada",
+                                fechaSolicitud = "21/11/2026 08:15",
+                                estado = "Entregado",
+                                nombreArchivo = "Padron_Flota_Frigorifica.pdf",
+                                rutaUri = "local://padron_camiones_pollos",
+                                fechaRecepcion = "21/11/2026 08:15"
+                            )
+                        )
+
+                        listOfNotNull(analistaRodrigo, adminAndes).forEach { dest ->
+                            siniestroDao.insertAviso(
+                                AvisoEntity(
+                                    fechaHora = "21/11/2026 08:15",
+                                    mensaje = "Nuevo siniestro recibido: SIN-2026-8850 (Robo camiones frigoríficos) de Pollos Hermanos SpA. Pendiente de asignación.",
+                                    leido = false,
+                                    idUsuario = dest.idUsuario,
+                                    requiereAccion = true,
+                                    estadoAviso = "PENDIENTE"
+                                )
+                            )
+                        }
+                    }
+                }
+
+                if (siniestroDao.obtenerSiniestroActual(9002) == null) {
+                    siniestroDao.insertSiniestro(
+                        SiniestroEntity(
+                            idSiniestro = 9002,
+                            numero = "SIN-2026-8851",
+                            idAsegurado = pollosHermanos.idUsuario,
+                            companiaNombre = "Chilena Consolidada (Zurich)",
+                            numeroPoliza = "POL-INC-88421",
+                            tipoSiniestroNombre = "Hogar - Incendio Planta Lavandería",
+                            modeloVehiculo = "Lavandería Industrial Brillante - Lavado de Uniformes",
+                            fechaOcurrencia = "21/11/2026",
+                            fechaReporte = "22/11/2026 09:30",
+                            comunaNombre = "Quilicura",
+                            descripcion = "Incendio estructural con pérdida total en planta de lavandería industrial donde se lavaban los uniformes del personal de Pollos Hermanos SpA.",
+                            etapaNombre = "Recibido",
+                            liquidadorNombre = "Por asignar",
+                            proximoPasoTexto = "En revisión por Analista para asignar liquidador especialista en Hogar/Incendio.",
+                            idArea = 2
+                        )
+                    )
+
+                    siniestroDao.insertGestion(
+                        GestionEntity(
+                            idSiniestro = 9002,
+                            fechaHora = "22/11/2026 09:30",
+                            descripcion = "Denuncio ingresado por Pollos Hermanos SpA: Incendio total en lavandería industrial de uniformes.",
+                            responsable = "Pollos Hermanos SpA",
+                            visibleAsegurado = true
+                        )
+                    )
+                    siniestroDao.insertDocumento(
+                        DocumentoEntity(
+                            idSiniestro = 9002,
+                            nombreTipoDocumento = "Póliza Incendio Comercial",
+                            comentario = "Cobertura instalaciones industriales y maquinaria",
+                            fechaSolicitud = "22/11/2026 09:30",
+                            estado = "Entregado",
+                            nombreArchivo = "Poliza_Lavanderia_PollosHermanos.pdf",
+                            rutaUri = "local://poliza_lavanderia_pollos",
+                            fechaRecepcion = "22/11/2026 09:30"
+                        )
+                    )
+                    siniestroDao.insertDocumento(
+                        DocumentoEntity(
+                            idSiniestro = 9002,
+                            nombreTipoDocumento = "Informe de Bomberos",
+                            comentario = "Peritaje preliminar incendio en nave de lavandería",
+                            fechaSolicitud = "22/11/2026 09:30",
+                            estado = "Entregado",
+                            nombreArchivo = "Informe_Bomberos_Lavanderia.pdf",
+                            rutaUri = "local://bomberos_lavanderia_pollos",
+                            fechaRecepcion = "22/11/2026 09:30"
+                        )
+                    )
+
+                    listOfNotNull(analistaRodrigo, adminAndes).forEach { dest ->
+                        siniestroDao.insertAviso(
+                            AvisoEntity(
+                                fechaHora = "22/11/2026 09:30",
+                                mensaje = "Nuevo siniestro recibido: SIN-2026-8851 (Incendio lavandería de uniformes) de Pollos Hermanos SpA. Pendiente de asignación.",
+                                leido = false,
+                                idUsuario = dest.idUsuario,
+                                requiereAccion = true,
+                                estadoAviso = "PENDIENTE"
+                            )
+                        )
+                    }
                 }
             }
         }

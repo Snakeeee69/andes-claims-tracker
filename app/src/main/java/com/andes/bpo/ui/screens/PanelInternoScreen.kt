@@ -7,9 +7,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.andes.bpo.ui.theme.PrimaryAndes
 import com.andes.bpo.utils.SesionUsuario
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PanelInternoScreen(
     navController: NavController,
@@ -18,8 +18,13 @@ fun PanelInternoScreen(
     val sesion by SesionUsuario.usuarioActual.collectAsState()
     val usuario = sesion
 
-    // Comprobar que el rol corresponde a esta pantalla
-    if (usuario == null || usuario.rol != rolRequerido) {
+    val esRolValido = when (rolRequerido) {
+        "LIQUIDADOR" -> usuario != null && usuario.rol.startsWith("LIQUIDADOR")
+        "ANALISTA" -> usuario != null && (usuario.rol == "ANALISTA" || usuario.rol == "ADMINISTRADOR")
+        else -> usuario != null && usuario.rol == rolRequerido
+    }
+
+    if (!esRolValido || usuario == null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -31,16 +36,15 @@ fun PanelInternoScreen(
                 "No tienes permiso para acceder a esta pantalla.",
                 color = MaterialTheme.colorScheme.error
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(
                 onClick = {
                     SesionUsuario.cerrarSesion()
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
             ) {
                 Text("Volver al inicio de sesión")
             }
@@ -48,126 +52,15 @@ fun PanelInternoScreen(
         return
     }
 
-    val esLiquidador = rolRequerido == "LIQUIDADOR"
-
-    val titulo = if (esLiquidador) {
-        "Panel del liquidador"
-    } else {
-        "Panel del analista"
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(titulo) }
+    when {
+        usuario.rol == "ANALISTA" || usuario.rol == "ADMINISTRADOR" -> {
+            BandejaAnalistaScreen(
+                navController = navController,
+                esModoAdmin = usuario.rol == "ADMINISTRADOR"
             )
         }
-    ) { paddingValues ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "¡Hola, ${usuario.nombre}!",
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Text(
-                text = "Bienvenido al sistema de gestión de siniestros Andes BPO.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = if (esLiquidador) {
-                            "Funciones del liquidador"
-                        } else {
-                            "Funciones del analista"
-                        },
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    if (esLiquidador) {
-                        Text("• Consultar siniestros asignados")
-                        Text("• Registrar gestiones")
-                        Text("• Solicitar documentos")
-                        Text("• Avanzar etapas")
-                    } else {
-                        Text("• Consultar siniestros")
-                        Text("• Revisar casos sin asignar")
-                        Text("• Asignar liquidadores")
-                        Text("• Reasignar casos")
-                    }
-
-                    OutlinedButton(
-                        onClick = {
-                            navController.navigate("perfil")
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Mi perfil")
-                    }
-
-                    Text(
-                        text = "Estas funciones se conectarán en los siguientes pasos.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            if (esLiquidador) {
-                Button(
-                    onClick = {
-                        navController.navigate("bandeja_liquidador")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Ver mis casos asignados")
-                }
-            } else {
-                Button(
-                    onClick = {
-                        navController.navigate("bandeja_analista")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Ver siniestros sin asignar")
-                }
-            }
-
-            OutlinedButton(
-                onClick = {
-                    navController.navigate("perfil")
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Mi perfil")
-            }
-            Spacer(modifier = Modifier.weight(1f))
-
-            OutlinedButton(
-                onClick = {
-                    SesionUsuario.cerrarSesion()
-
-                    navController.navigate("login") {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cerrar sesión")
-            }
+        usuario.rol.startsWith("LIQUIDADOR") -> {
+            BandejaLiquidadorScreen(navController = navController)
         }
     }
 }

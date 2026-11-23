@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.andes.bpo.data.local.AppDatabase
+import com.andes.bpo.data.local.entity.AvisoEntity
 import com.andes.bpo.data.local.entity.SiniestroEntity
 import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.CancellationException
@@ -22,7 +23,9 @@ import java.util.Locale
 data class BandejaLiquidadorUiState(
     val cargando: Boolean = true,
     val nombreLiquidador: String = "",
+    val especialidad: String = "",
     val casos: List<SiniestroEntity> = emptyList(),
+    val avisos: List<AvisoEntity> = emptyList(),
     val guardandoGestion: Boolean = false,
     val avanzandoEtapa: Boolean = false,
     val errorGestion: String? = null,
@@ -38,18 +41,11 @@ class BandejaLiquidadorViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val db = AppDatabase.getDatabase(
-        application,
-        viewModelScope
-    )
-
+    private val db = AppDatabase.getDatabase(application, viewModelScope)
     private val dao = db.siniestroDao()
     private val usuarioDao = db.usuarioDao()
 
-    private val _uiState = MutableStateFlow(
-        BandejaLiquidadorUiState()
-    )
-
+    private val _uiState = MutableStateFlow(BandejaLiquidadorUiState())
     val uiState = _uiState.asStateFlow()
 
     private var cargaJob: Job? = null
@@ -59,429 +55,207 @@ class BandejaLiquidadorViewModel(
 
         cargaJob = viewModelScope.launch {
             _uiState.value = BandejaLiquidadorUiState()
-
             val usuario = SesionUsuario.obtenerSesion()
 
             if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
                 _uiState.update {
-                    it.copy(
-                        cargando = false,
-                        error = "No tienes permiso para consultar estos casos"
-                    )
+                    it.copy(cargando = false, error = "No tienes permiso para consultar estos casos")
                 }
                 return@launch
             }
 
-            try {
-                dao.getSiniestrosAsignados(
-                    usuario.idUsuario
-                ).collectLatest { lista ->
+            launch {
+                dao.getAvisosPorUsuario(usuario.idUsuario).collectLatest { listaAvisos ->
+                    _uiState.update { it.copy(avisos = listaAvisos) }
+                }
+            }
 
+            try {
+                dao.getSiniestrosAsignados(usuario.idUsuario).collectLatest { lista ->
                     _uiState.update {
                         it.copy(
                             cargando = false,
-                            nombreLiquidador = usuario.nombre,
+                            nombreLiquidador = "${usuario.nombre}${usuario.apellido}",
+                            especialidad = usuario.equipo ?: "GENERAL",
                             casos = lista,
                             error = null
                         )
                     }
                 }
-
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        cargando = false,
-                        error = "No se pudieron cargar los casos asignados"
-                    )
+                    it.copy(cargando = false, error = "No se pudieron cargar los casos asignados")
                 }
             }
+        }
+    }
+
+    fun marcarAvisoLeido(idAviso: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.actualizarEstadoAviso(idAviso, "LEIDO")
         }
     }
 
     fun aceptarCaso(idSiniestro: Int) {
         val usuario = SesionUsuario.obtenerSesion()
-
-        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
-            _uiState.update {
-                it.copy(mensaje = "No tienes permiso para aceptar casos")
-            }
-            return
-        }
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) return
 
         viewModelScope.launch {
             try {
-                val fecha = SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()
-                ).format(Date())
-
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
                 withContext(Dispatchers.IO) {
-                    dao.aceptarCasoLiquidador(
-                        idSiniestro = idSiniestro,
-                        idLiquidador = usuario.idUsuario,
-                        fechaHora = fecha
-                    )
+                    dao.aceptarCasoLiquidador(idSiniestro, usuario.idUsuario, fecha)
                 }
-
-                _uiState.update {
-                    it.copy(mensaje = "Caso aceptado formalmente")
-                }
-            } catch (e: CancellationException) {
-                throw e
+                _uiState.update { it.copy(mensaje = "Caso aceptado. Inicia la liquidación (D.S. N° 1.055)") }
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(mensaje = e.message ?: "No se pudo aceptar el caso")
-                }
+                _uiState.update { it.copy(mensaje = e.message ?: "No se pudo aceptar el caso") }
             }
         }
     }
 
-    fun rechazarYDerivar(idSiniestro: Int, motivoRechazo: String) {
+    fun rechazarYDerivar(idSiniestro: Int, motivo: String, detalle: String) {
         val usuario = SesionUsuario.obtenerSesion()
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) return
 
-        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
-            _uiState.update {
-                it.copy(mensaje = "No tienes permiso para rechazar casos")
-            }
-            return
-        }
-
-        val motivo = motivoRechazo.trim()
-        if (motivo.length !in 5..300) {
-            _uiState.update {
-                it.copy(mensaje = "Indica un motivo de rechazo de entre 5 y 300 caracteres")
-            }
+        val motivoCompleto = "$motivo:${detalle.trim()}"
+        if (detalle.trim().length < 10) {
+            _uiState.update { it.copy(mensaje = "Explica el motivo (mín. 10 caracteres)") }
             return
         }
 
         viewModelScope.launch {
             try {
-                val fecha = SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()
-                ).format(Date())
-
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
                 withContext(Dispatchers.IO) {
                     val respaldo = usuarioDao.obtenerLiquidadorRespaldo(usuario.equipo ?: "VEHICULOS")
-                        ?: error("No hay liquidador de respaldo configurado para este equipo")
-
                     dao.rechazarYDerivarALiquidador2(
                         idSiniestro = idSiniestro,
                         idLiquidador1 = usuario.idUsuario,
-                        idLiquidador2 = respaldo.idUsuario,
-                        nombreLiquidador2 = "${respaldo.nombre} ${respaldo.apellido}",
-                        motivoRechazo = motivo,
+                        idLiquidador2 = respaldo?.idUsuario,
+                        nombreLiquidador2 = respaldo?.let { "${it.nombre}${it.apellido}" },
+                        motivoRechazo = motivoCompleto,
                         fechaHora = fecha
                     )
                 }
-
                 _uiState.update {
-                    it.copy(mensaje = "Caso rechazado y derivado al Liquidador de Respaldo")
+                    it.copy(mensaje = "Expediente rechazado y derivado para reasignación")
                 }
-            } catch (e: CancellationException) {
-                throw e
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(mensaje = e.message ?: "No se pudo derivar el caso")
-                }
+                _uiState.update { it.copy(mensaje = e.message ?: "No se pudo derivar el caso") }
             }
         }
     }
 
-    fun registrarGestion(
-        idSiniestro: Int,
-        descripcion: String,
-        visibleAsegurado: Boolean
-    ) {
+    fun registrarGestion(idSiniestro: Int, descripcion: String, visibleAsegurado: Boolean) {
         val usuario = SesionUsuario.obtenerSesion()
-
-        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
-            _uiState.update {
-                it.copy(
-                    errorGestion = "No tienes permisos para registrar gestiones"
-                )
-            }
-            return
-        }
-
-        if (_uiState.value.guardandoGestion) return
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true || _uiState.value.guardandoGestion) return
 
         val texto = descripcion.trim()
-
         if (texto.length !in 5..500) {
-            _uiState.update {
-                it.copy(
-                    errorGestion =
-                        "Escribe entre 5 y 500 caracteres"
-                )
-            }
+            _uiState.update { it.copy(errorGestion = "Escribe entre 5 y 500 caracteres") }
             return
         }
 
-        _uiState.update {
-            it.copy(
-                guardandoGestion = true,
-                errorGestion = null
-            )
-        }
+        _uiState.update { it.copy(guardandoGestion = true, errorGestion = null) }
 
         viewModelScope.launch {
             try {
-                val fecha = SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()
-                ).format(Date())
-
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
                 withContext(Dispatchers.IO) {
-                    dao.registrarGestionLiquidador(
-                        idSiniestro = idSiniestro,
-                        idLiquidador = usuario.idUsuario,
-                        descripcion = texto,
-                        fechaHora = fecha,
-                        visibleAsegurado = visibleAsegurado
-                    )
+                    dao.registrarGestionLiquidador(idSiniestro, usuario.idUsuario, texto, fecha, visibleAsegurado)
                 }
-
                 _uiState.update {
-                    it.copy(
-                        guardandoGestion = false,
-                        mensaje = "Gestión registrada correctamente",
-                        errorGestion = null
-                    )
+                    it.copy(guardandoGestion = false, mensaje = "Gestión registrada correctamente", errorGestion = null)
                 }
-
-            } catch (e: CancellationException) {
-                throw e
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        guardandoGestion = false,
-                        errorGestion = when (e) {
-                            is IllegalArgumentException,
-                            is IllegalStateException ->
-                                e.message ?: "No se pudo guardar la gestión"
-                            else -> "No se pudo guardar la gestión"
-                        }
-                    )
+                    it.copy(guardandoGestion = false, errorGestion = e.message ?: "No se pudo guardar la gestión")
                 }
             }
         }
     }
 
     fun avanzarALiquidacion(idSiniestro: Int) {
-
         val usuario = SesionUsuario.obtenerSesion()
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true || _uiState.value.avanzandoEtapa) return
 
-        if (usuario == null || !usuario.rol.startsWith("LIQUIDADOR")) {
-            _uiState.update {
-                it.copy(
-                    mensaje = "No tienes permiso para cambiar etapas"
-                )
-            }
-            return
-        }
-
-        if (_uiState.value.avanzandoEtapa) return
-
-        _uiState.update {
-            it.copy(
-                avanzandoEtapa = true,
-                mensaje = null
-            )
-        }
+        _uiState.update { it.copy(avanzandoEtapa = true, mensaje = null) }
 
         viewModelScope.launch {
             try {
-                val fecha = SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()
-                ).format(Date())
-
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
                 withContext(Dispatchers.IO) {
-                    dao.avanzarALiquidacion(
-                        idSiniestro = idSiniestro,
-                        idLiquidador = usuario.idUsuario,
-                        fechaHora = fecha
-                    )
+                    dao.avanzarALiquidacion(idSiniestro, usuario.idUsuario, fecha)
                 }
-
                 _uiState.update {
-                    it.copy(
-                        avanzandoEtapa = false,
-                        mensaje =
-                            "El siniestro pasó a En liquidación"
-                    )
+                    it.copy(avanzandoEtapa = false, mensaje = "El siniestro pasó a En liquidación")
                 }
-
-            } catch (e: CancellationException) {
-                _uiState.update {
-                    it.copy(avanzandoEtapa = false)
-                }
-                throw e
-
             } catch (e: Exception) {
-                val mensajeError = when (e) {
-                    is IllegalStateException,
-                    is IllegalArgumentException ->
-                        e.message ?: "No se pudo cambiar la etapa"
-
-                    else -> "No se pudo cambiar la etapa"
-                }
-
                 _uiState.update {
-                    it.copy(
-                        avanzandoEtapa = false,
-                        mensaje = mensajeError
-                    )
+                    it.copy(avanzandoEtapa = false, mensaje = e.message ?: "No se pudo cambiar la etapa")
                 }
             }
         }
     }
 
-    fun cerrarSiniestro(
-        idSiniestro: Int,
-        resultado: String,
-        mensajeCierre: String
-    ) {
+    fun cerrarSiniestro(idSiniestro: Int, resultado: String, mensajeCierre: String) {
         val usuario = SesionUsuario.obtenerSesion()
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true || _uiState.value.cerrandoSiniestro) return
 
-        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
-            _uiState.update {
-                it.copy(mensaje = "No tienes permiso para cerrar casos")
-            }
-            return
-        }
-
-        if (_uiState.value.cerrandoSiniestro) return
-
-        _uiState.update {
-            it.copy(cerrandoSiniestro = true, mensaje = null)
-        }
+        _uiState.update { it.copy(cerrandoSiniestro = true, mensaje = null) }
 
         viewModelScope.launch {
             try {
-                val fecha = SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()
-                ).format(Date())
-
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
                 withContext(Dispatchers.IO) {
-                    dao.cerrarSiniestroConHistorial(
-                        idSiniestro = idSiniestro,
-                        idLiquidador = usuario.idUsuario,
-                        resultado = resultado,
-                        mensaje = mensajeCierre,
-                        fechaHora = fecha
-                    )
+                    dao.cerrarSiniestroConHistorial(idSiniestro, usuario.idUsuario, resultado, mensajeCierre, fecha)
                 }
-
                 _uiState.update {
-                    it.copy(
-                        cerrandoSiniestro = false,
-                        mensaje = "Siniestro cerrado correctamente"
-                    )
+                    it.copy(cerrandoSiniestro = false, mensaje = "Informe emitido y siniestro cerrado")
                 }
-
-            } catch (e: CancellationException) {
-                _uiState.update {
-                    it.copy(cerrandoSiniestro = false)
-                }
-                throw e
-
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        cerrandoSiniestro = false,
-                        mensaje = e.message ?: "No se pudo cerrar el siniestro"
-                    )
+                    it.copy(cerrandoSiniestro = false, mensaje = e.message ?: "No se pudo cerrar el siniestro")
                 }
             }
         }
     }
 
-    fun solicitarDocumento(
-        idSiniestro: Int,
-        tipoDocumento: String,
-        comentario: String
-    ) {
+    fun solicitarDocumento(idSiniestro: Int, tipoDocumento: String, comentario: String) {
         val usuario = SesionUsuario.obtenerSesion()
+        if (usuario?.rol?.startsWith("LIQUIDADOR") != true || _uiState.value.solicitandoDocumento) return
 
-        if (usuario?.rol?.startsWith("LIQUIDADOR") != true) {
+        if (tipoDocumento.isBlank() || comentario.trim().length !in 5..300) {
             _uiState.update {
-                it.copy(
-                    errorSolicitud =
-                        "No tienes permisos para solicitar documentos"
-                )
-            }
-            return
-        }
-
-        if (_uiState.value.solicitandoDocumento) return
-
-        if (tipoDocumento.isBlank() ||
-            comentario.trim().length !in 5..300
-        ) {
-            _uiState.update {
-                it.copy(
-                    errorSolicitud =
-                        "Selecciona el documento y escribe un comentario de 5 a 300 caracteres"
-                )
+                it.copy(errorSolicitud = "Selecciona el documento y escribe un comentario de 5 a 300 caracteres")
             }
             return
         }
 
         _uiState.update {
-            it.copy(
-                solicitandoDocumento = true,
-                errorSolicitud = null,
-                solicitudRegistrada = false
-            )
+            it.copy(solicitandoDocumento = true, errorSolicitud = null, solicitudRegistrada = false)
         }
 
         viewModelScope.launch {
             try {
-                val fecha = SimpleDateFormat(
-                    "yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()
-                ).format(Date())
-
+                val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
                 withContext(Dispatchers.IO) {
-                    dao.solicitarDocumentoConHistorial(
-                        idSiniestro = idSiniestro,
-                        idLiquidador = usuario.idUsuario,
-                        tipoDocumento = tipoDocumento,
-                        comentario = comentario,
-                        fechaHora = fecha
-                    )
+                    dao.solicitarDocumentoConHistorial(idSiniestro, usuario.idUsuario, tipoDocumento, comentario, fecha)
                 }
-
                 _uiState.update {
                     it.copy(
                         solicitandoDocumento = false,
                         solicitudRegistrada = true,
-                        mensaje = "Documento solicitado correctamente"
+                        mensaje = "Solicitud enviada al asegurado"
                     )
                 }
-
-            } catch (e: CancellationException) {
-                _uiState.update {
-                    it.copy(solicitandoDocumento = false)
-                }
-                throw e
-
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         solicitandoDocumento = false,
-                        errorSolicitud = when (e) {
-                            is IllegalStateException,
-                            is IllegalArgumentException ->
-                                e.message ?: "No se pudo solicitar el documento"
-                            else ->
-                                "No se pudo solicitar el documento"
-                        }
+                        errorSolicitud = e.message ?: "No se pudo solicitar el documento"
                     )
                 }
             }
@@ -489,23 +263,14 @@ class BandejaLiquidadorViewModel(
     }
 
     fun limpiarEstadoSolicitud() {
-        _uiState.update {
-            it.copy(
-                errorSolicitud = null,
-                solicitudRegistrada = false
-            )
-        }
+        _uiState.update { it.copy(errorSolicitud = null, solicitudRegistrada = false) }
     }
 
     fun limpiarMensaje() {
-        _uiState.update {
-            it.copy(mensaje = null)
-        }
+        _uiState.update { it.copy(mensaje = null) }
     }
 
     fun limpiarErrorGestion() {
-        _uiState.update {
-            it.copy(errorGestion = null)
-        }
+        _uiState.update { it.copy(errorGestion = null) }
     }
 }

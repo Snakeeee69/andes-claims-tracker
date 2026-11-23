@@ -1,20 +1,17 @@
 package com.andes.bpo.viewmodel
 
 import android.app.Application
-import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.andes.bpo.data.local.AppDatabase
 import com.andes.bpo.data.local.entity.UsuarioEntity
 import com.andes.bpo.data.remote.RetrofitClient
-import com.andes.bpo.utils.PasswordUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
+import java.io.IOException
 
 data class RegistroUiState(
     val tipoAsegurado: String = "ASEGURADO_NATURAL",
@@ -27,6 +24,7 @@ data class RegistroUiState(
     val direccion: String = "",
     val contrasena: String = "",
     val confirmacion: String = "",
+    val aceptaTerminos: Boolean = false,
     val errores: Map<String, String> = emptyMap(),
     val errorGeneral: String? = null,
     val guardando: Boolean = false,
@@ -37,65 +35,61 @@ class RegistroViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val usuarioDao = AppDatabase.getDatabase(
-        application,
-        viewModelScope
-    ).usuarioDao()
+    companion object {
+        val ASEGURADORAS = listOf(
+            "HDI Seguros",
+            "BCI Seguros",
+            "Mapfre",
+            "Seguros SURA",
+            "Liberty Seguros",
+            "Chilena Consolidada",
+            "Consorcio",
+            "MetLife",
+            "Bupa Chile",
+            "Banmédica",
+            "Colmena"
+        )
+
+        val REGIONES_CHILE = listOf(
+            "Arica y Parinacota",
+            "Tarapacá",
+            "Antofagasta",
+            "Atacama",
+            "Coquimbo",
+            "Valparaíso",
+            "Metropolitana de Santiago",
+            "Libertador General Bernardo O'Higgins",
+            "Maule",
+            "Ñuble",
+            "Biobío",
+            "La Araucanía",
+            "Los Ríos",
+            "Los Lagos",
+            "Aysén del General Carlos Ibáñez del Campo",
+            "Magallanes y de la Antártica Chilena"
+        )
+
+        private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+    }
 
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState = _uiState.asStateFlow()
 
-    companion object {
-        val ASEGURADORAS = listOf(
-            "Seguros Falabella",
-            "BCI Seguros",
-            "Consorcio",
-            "HDI Seguros",
-            "Chilena Consolidada (Zurich)",
-            "SURA",
-            "Mapfre",
-            "Liberty Seguros",
-            "MetLife"
-        )
-
-        val REGIONES_CHILE = listOf(
-            "Región de Arica y Parinacota",
-            "Región de Tarapacá",
-            "Región de Antofagasta",
-            "Región de Atacama",
-            "Región de Coquimbo",
-            "Región de Valparaíso",
-            "Región Metropolitana de Santiago",
-            "Región del Libertador General Bernardo O'Higgins",
-            "Región del Maule",
-            "Región de Ñuble",
-            "Región del Biobío",
-            "Región de La Araucanía",
-            "Región de Los Ríos",
-            "Región de Los Lagos",
-            "Región de Aysén del General Carlos Ibáñez del Campo",
-            "Región de Magallanes y de la Antártica Chilena"
-        )
-
-        fun esContrasenaRegistroValida(contrasena: String): Boolean {
-            return contrasena.length >= 8 &&
-                    contrasena.any { it.isLetter() } &&
-                    contrasena.any { it.isDigit() }
-        }
-
-        fun coincidenContrasenasRegistro(
-            contrasena: String,
-            confirmacion: String
-        ): Boolean {
-            return contrasena == confirmacion
+    fun cambiarTipoAsegurado(tipo: String) {
+        _uiState.update {
+            it.copy(
+                tipoAsegurado = tipo,
+                errores = it.errores - "nombre" - "apellido",
+                errorGeneral = null
+            )
         }
     }
 
-    fun cambiarTipoAsegurado(nuevoTipo: String) {
-        _uiState.update { actual ->
-            actual.copy(
-                tipoAsegurado = nuevoTipo,
-                errores = actual.errores - "nombre" - "apellido",
+    fun cambiarAceptacionTerminos(acepta: Boolean) {
+        _uiState.update {
+            it.copy(
+                aceptaTerminos = acepta,
+                errores = if (acepta) it.errores - "terminos" else it.errores,
                 errorGeneral = null
             )
         }
@@ -103,150 +97,114 @@ class RegistroViewModel(
 
     fun cambiarCampo(campo: String, valor: String) {
         _uiState.update { actual ->
-            val nuevo = when (campo) {
+            val erroresActualizados = actual.errores - campo
+
+            when (campo) {
                 "rut" -> actual.copy(
-                    rut = valor.filter {
-                        it.isDigit() || it == 'k' || it == 'K'
-                    }.uppercase().take(9)
+                    rut = limpiarRutSinFormato(valor),
+                    errores = erroresActualizados,
+                    errorGeneral = null
                 )
-                "nombre" -> actual.copy(nombre = valor)
-                "apellido" -> actual.copy(apellido = valor)
-                "correo" -> actual.copy(correo = valor)
-                "aseguradora" -> actual.copy(aseguradora = valor)
-                "region" -> actual.copy(region = valor)
-                "direccion" -> actual.copy(direccion = valor)
-                "contrasena" -> actual.copy(contrasena = valor)
-                "confirmacion" -> actual.copy(confirmacion = valor)
+                "nombre" -> actual.copy(nombre = valor, errores = erroresActualizados, errorGeneral = null)
+                "apellido" -> actual.copy(apellido = valor, errores = erroresActualizados, errorGeneral = null)
+                "correo" -> actual.copy(correo = valor.trim(), errores = erroresActualizados, errorGeneral = null)
+                "aseguradora" -> actual.copy(aseguradora = valor, errores = erroresActualizados, errorGeneral = null)
+                "region" -> actual.copy(region = valor, errores = erroresActualizados, errorGeneral = null)
+                "direccion" -> actual.copy(direccion = valor, errores = erroresActualizados, errorGeneral = null)
+                "contrasena" -> actual.copy(contrasena = valor, errores = erroresActualizados, errorGeneral = null)
+                "confirmacion" -> actual.copy(confirmacion = valor, errores = erroresActualizados, errorGeneral = null)
                 else -> actual
             }
-
-            nuevo.copy(
-                errores = nuevo.errores - campo,
-                errorGeneral = null
-            )
         }
-    }
-
-    private fun rutValido(rut: String): Boolean {
-        if (rut.length !in 8..9) return false
-
-        val cuerpo = rut.dropLast(1)
-        if (!cuerpo.all { it.isDigit() }) return false
-
-        var suma = 0
-        var multiplicador = 2
-
-        for (digito in cuerpo.reversed()) {
-            suma += digito.digitToInt() * multiplicador
-            multiplicador++
-            if (multiplicador > 7) multiplicador = 2
-        }
-
-        val resultado = 11 - (suma % 11)
-        val dv = when (resultado) {
-            11 -> '0'
-            10 -> 'K'
-            else -> resultado.toString()[0]
-        }
-
-        return rut.last() == dv
     }
 
     fun registrar() {
-        val datos = _uiState.value
+        val s = _uiState.value
+        if (s.guardando) return
 
-        if (datos.guardando || datos.registrado) return
+        val esEmpresa = s.tipoAsegurado == "ASEGURADO_EMPRESA"
+        val nuevosErrores = mutableMapOf<String, String>()
+        val rutSinFormato = limpiarRutSinFormato(s.rut)
 
-        val esEmpresa = datos.tipoAsegurado == "ASEGURADO_EMPRESA"
-        val errores = mutableMapOf<String, String>()
-
-        if (!rutValido(datos.rut)) {
-            errores["rut"] = "Ingresa un RUT válido"
+        if (rutSinFormato.isBlank()) {
+            nuevosErrores["rut"] = "Ingresa tu RUT"
+        } else if (!esRutValido(rutSinFormato)) {
+            nuevosErrores["rut"] = "RUT inválido (ej: 12.345.678-K)"
         }
 
-        if (datos.nombre.trim().length < 2) {
-            errores["nombre"] = if (esEmpresa) "Ingresa la razón social" else "Ingresa tu nombre"
+        if (s.nombre.trim().length < 2) {
+            nuevosErrores["nombre"] = if (esEmpresa) "Ingresa la razón social" else "Ingresa tu nombre"
         }
 
-        if (!esEmpresa && datos.apellido.trim().length < 2) {
-            errores["apellido"] = "Ingresa tu apellido"
+        if (s.apellido.trim().length < 2) {
+            nuevosErrores["apellido"] = if (esEmpresa) "Ingresa el tipo de sociedad" else "Ingresa tu apellido"
         }
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(datos.correo.trim()).matches()) {
-            errores["correo"] = "Ingresa un correo válido"
+        if (s.correo.isBlank()) {
+            nuevosErrores["correo"] = "Ingresa tu correo electrónico"
+        } else if (!EMAIL_REGEX.matches(s.correo.trim())) {
+            nuevosErrores["correo"] = "Formato de correo inválido"
         }
 
-        if (datos.aseguradora.isBlank()) {
-            errores["aseguradora"] = "Selecciona tu aseguradora"
+        if (s.aseguradora.isBlank()) {
+            nuevosErrores["aseguradora"] = "Selecciona una aseguradora"
         }
 
-        if (datos.region.isBlank()) {
-            errores["region"] = "Selecciona tu región"
+        if (s.region.isBlank()) {
+            nuevosErrores["region"] = "Selecciona una región"
         }
 
-        if (!esContrasenaRegistroValida(datos.contrasena)) {
-            errores["contrasena"] = "Mínimo 8 caracteres, con letras y números"
+        if (s.contrasena == "123456" || s.contrasena.length < 6) {
+            nuevosErrores["contrasena"] = "La contraseña debe tener al menos 6 caracteres y no ser 123456"
         }
 
-        if (!coincidenContrasenasRegistro(datos.contrasena, datos.confirmacion)) {
-            errores["confirmacion"] = "Las contraseñas no coinciden"
+        if (s.confirmacion != s.contrasena) {
+            nuevosErrores["confirmacion"] = "Las contraseñas no coinciden"
         }
 
-        if (errores.isNotEmpty()) {
-            _uiState.update { it.copy(errores = errores) }
+        if (!s.aceptaTerminos) {
+            nuevosErrores["terminos"] = "Debes aceptar los Términos y Condiciones"
+        }
+
+        if (nuevosErrores.isNotEmpty()) {
+            _uiState.update { it.copy(errores = nuevosErrores, errorGeneral = null) }
             return
         }
 
-        _uiState.update {
-            it.copy(guardando = true, errorGeneral = null)
-        }
+        _uiState.update { it.copy(guardando = true, errorGeneral = null) }
 
         viewModelScope.launch {
             try {
+                val correoLimpio = s.correo.trim().lowercase()
+                val direccionCompleta = listOf(s.direccion.trim(), s.region.trim())
+                    .filter { it.isNotBlank() }
+                    .joinToString(", ")
+
+                val payload = UsuarioEntity(
+                    rut = rutSinFormato,
+                    nombre = s.nombre.trim(),
+                    apellido = s.apellido.trim(),
+                    correo = correoLimpio,
+                    passwordHash = s.contrasena,
+                    passwordSalt = "",
+                    rol = s.tipoAsegurado,
+                    direccion = direccionCompleta.ifBlank { null },
+                    aseguradora = s.aseguradora,
+                    equipo = null,
+                    tipoLiquidador = null,
+                    idArea = null,
+                    requiereCambioClave = false,
+                    codigoRecuperacionHash = null
+                )
+
                 withContext(Dispatchers.IO) {
-                    val apellidoFinal = if (esEmpresa) {
-                        datos.apellido.trim().ifBlank { "Empresa" }
-                    } else {
-                        datos.apellido.trim()
-                    }
-
-                    val direccionCompleta = if (datos.direccion.trim().isNotBlank()) {
-                        "${datos.direccion.trim()}, ${datos.region}"
-                    } else {
-                        datos.region
-                    }
-
-                    val usuarioParaBackend = UsuarioEntity(
-                        rut = datos.rut,
-                        nombre = datos.nombre.trim(),
-                        apellido = apellidoFinal,
-                        correo = datos.correo.trim().lowercase(Locale.ROOT),
-                        passwordHash = datos.contrasena,
-                        passwordSalt = "",
-                        rol = datos.tipoAsegurado,
-                        direccion = direccionCompleta,
-                        aseguradora = datos.aseguradora
-                    )
-
-                    val response = RetrofitClient.api.registrarUsuario(usuarioParaBackend)
-
-                    if (response.isSuccessful) {
-                        val passwordLocal = PasswordUtils.generarHash(datos.contrasena)
-                        val cuerpoRemoto = response.body()
-                        val usuarioLocal = (cuerpoRemoto ?: usuarioParaBackend).copy(
-                            passwordHash = passwordLocal.hash,
-                            passwordSalt = passwordLocal.salt,
-                            rol = cuerpoRemoto?.rol ?: datos.tipoAsegurado,
-                            direccion = cuerpoRemoto?.direccion ?: direccionCompleta,
-                            aseguradora = cuerpoRemoto?.aseguradora ?: datos.aseguradora
+                    val response = RetrofitClient.api.registrarUsuario(payload)
+                    if (!response.isSuccessful) {
+                        val msg = RetrofitClient.extraerMensajeError(
+                            response.errorBody()?.string(),
+                            "No se pudo registrar en el servidor (${response.code()})"
                         )
-                        runCatching {
-                            usuarioDao.registrarUsuario(usuarioLocal)
-                        }
-                    } else if (response.code() == 400 || response.code() == 409) {
-                        throw IllegalArgumentException("Este RUT o correo ya está registrado en el servidor")
-                    } else {
-                        throw Exception("Error del servidor (${response.code()})")
+                        throw Exception(msg)
                     }
                 }
 
@@ -254,28 +212,58 @@ class RegistroViewModel(
                     it.copy(
                         guardando = false,
                         registrado = true,
-                        contrasena = "",
-                        confirmacion = ""
+                        errores = emptyMap(),
+                        errorGeneral = null
                     )
                 }
-
-            } catch (e: IllegalArgumentException) {
+            } catch (e: IOException) {
                 _uiState.update {
                     it.copy(
                         guardando = false,
-                        errores = mapOf(
-                            "rut" to (e.message ?: "Este RUT ya está registrado")
-                        )
+                        errorGeneral = "Sin conexión con el servidor (10.0.2.2:8080)"
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         guardando = false,
-                        errorGeneral = e.message ?: "No se pudo conectar con el servidor."
+                        errorGeneral = e.message ?: "No se pudo completar el registro"
                     )
                 }
             }
         }
+    }
+
+    private fun limpiarRutSinFormato(rutInput: String): String {
+        return rutInput
+            .replace(Regex("[^0-9kK]"), "")
+            .uppercase()
+            .take(9)
+    }
+
+    private fun esRutValido(rutLimpio: String): Boolean {
+        if (rutLimpio.length !in 7..9) return false
+
+        val cuerpo = rutLimpio.dropLast(1)
+        val dvIngresado = rutLimpio.last()
+
+        if (!cuerpo.all { it.isDigit() }) return false
+        if (dvIngresado !in '0'..'9' && dvIngresado != 'K') return false
+
+        var suma = 0
+        var multiplicador = 2
+        for (i in cuerpo.length - 1 downTo 0) {
+            suma += cuerpo[i].digitToInt() * multiplicador
+            multiplicador = if (multiplicador == 7) 2 else multiplicador + 1
+        }
+
+        val resto = 11 - (suma % 11)
+        val dvEsperado = when (resto) {
+            11 -> '0'
+            10 -> 'K'
+            else -> resto.digitToChar()
+        }
+
+        return dvIngresado == dvEsperado
     }
 }

@@ -1,7 +1,6 @@
 package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -24,8 +23,8 @@ import com.andes.bpo.R
 import com.andes.bpo.ui.theme.BackgroundAndes
 import com.andes.bpo.ui.theme.MintAndes
 import com.andes.bpo.ui.theme.PrimaryAndes
+import com.andes.bpo.utils.AvatarUsuario
 import com.andes.bpo.viewmodel.TrackingViewModel
-import com.andes.bpo.utils.SesionUsuario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +34,6 @@ fun TrackingScreen(
     viewModel: TrackingViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showLogoutDialog by remember { mutableStateOf(false) }
 
     val nombreUsuario = uiState.nombreUsuario
     val inicialesUsuario = uiState.inicialesUsuario
@@ -55,6 +53,25 @@ fun TrackingScreen(
             3 -> "En liquidación"
             4 -> "Cerrado"
             else -> "En progreso"
+        }
+
+        val etiquetaDetalleBien = when {
+            uiState.tipo.contains("Salud", ignoreCase = true) ||
+                    uiState.tipo.contains("Vida", ignoreCase = true) ||
+                    uiState.subtipo.contains("Salud", ignoreCase = true) ||
+                    uiState.subtipo.contains("Vida", ignoreCase = true) -> "Nombre del paciente"
+
+            uiState.tipo.contains("Hogar", ignoreCase = true) ||
+                    uiState.tipo.contains("Incendio", ignoreCase = true) ||
+                    uiState.subtipo.contains("Hogar", ignoreCase = true) ||
+                    uiState.subtipo.contains("Incendio", ignoreCase = true) -> "Dirección del inmueble"
+
+            uiState.tipo.contains("Vehículo", ignoreCase = true) ||
+                    uiState.tipo.contains("Auto", ignoreCase = true) ||
+                    uiState.subtipo.contains("Vehículo", ignoreCase = true) ||
+                    uiState.subtipo.contains("Auto", ignoreCase = true) -> "Modelo"
+
+            else -> "Bien o persona asegurada"
         }
 
         Scaffold(
@@ -88,21 +105,15 @@ fun TrackingScreen(
                                 tint = PrimaryAndes
                             )
                         }
-                        IconButton(onClick = { showLogoutDialog = true }) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MintAndes,
-                                modifier = Modifier.size(34.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = inicialesUsuario,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PrimaryAndes
-                                    )
-                                }
-                            }
+                        IconButton(onClick = { navController.navigate("perfil") }) {
+                            AvatarUsuario(
+                                rut = rut,
+                                iniciales = inicialesUsuario,
+                                size = 34.dp,
+                                fontSize = 12.sp,
+                                containerColor = MintAndes,
+                                contentColor = PrimaryAndes
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -178,24 +189,6 @@ fun TrackingScreen(
                     fontSize = 13.sp,
                     color = Color.Gray
                 )
-
-                OutlinedButton(
-                    onClick = {
-                        navController.navigate("configurar_recuperacion")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Configurar recuperación de contraseña")
-                }
-
-                OutlinedButton(
-                    onClick = {
-                        navController.navigate("perfil")
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Mi perfil")
-                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -284,7 +277,7 @@ fun TrackingScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = {navController.navigate("mis_siniestros/$rut") },
+                        onClick = { navController.navigate("mis_siniestros/$rut") },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
@@ -305,7 +298,7 @@ fun TrackingScreen(
                             Text("Detalles del siniestro", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF263C35))
                             Spacer(modifier = Modifier.height(12.dp))
                             DetalleFila("Subtipo", uiState.subtipo)
-                            DetalleFila("Modelo", uiState.modeloVehiculo)
+                            DetalleFila(etiquetaDetalleBien, uiState.modeloVehiculo.ifBlank { "No especificado" })
                             DetalleFila("Póliza", uiState.numeroPoliza)
                             DetalleFila("Aseguradora", uiState.aseguradora)
                         }
@@ -377,30 +370,6 @@ fun TrackingScreen(
                 }
             }
         }
-    }
-
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text(text = "Cerrar sesión", fontWeight = FontWeight.Bold) },
-            text = { Text("¿Estás seguro de que deseas salir? Tendrás que volver a ingresar tu RUT para ver el estado de tu siniestro.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-
-                        SesionUsuario.cerrarSesion()
-
-                        navController.navigate("login") {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                ) { Text("Sí, salir", color = Color.Red) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancelar") }
-            }
-        )
     }
 }
 

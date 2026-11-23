@@ -6,6 +6,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -32,6 +35,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var contrasenaVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isLoginSuccessful) {
         if (uiState.isLoginSuccessful) {
@@ -122,10 +126,13 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = uiState.rut,
                             onValueChange = { viewModel.onRutChange(it) },
-                            label = { Text("RUT del Asegurado") },
-                            placeholder = { Text("15.842.371-5") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            visualTransformation = VisualTransformation.None,
+                            label = { Text("RUT") },
+                            placeholder = { Text("19.876.544-4") },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Ascii,
+                                capitalization = KeyboardCapitalization.Characters
+                            ),
+                            visualTransformation = RutVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             isError = uiState.error != null,
@@ -147,16 +154,28 @@ fun LoginScreen(
                             value = uiState.contrasena,
                             onValueChange = { viewModel.onContrasenaChange(it) },
                             label = { Text("Contraseña") },
-                            visualTransformation = PasswordVisualTransformation(),
+                            visualTransformation = if (contrasenaVisible) {
+                                VisualTransformation.None
+                            } else {
+                                PasswordVisualTransformation()
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             isError = uiState.error != null,
                             trailingIcon = {
-                                if (uiState.error != null) {
+                                IconButton(onClick = { contrasenaVisible = !contrasenaVisible }) {
                                     Icon(
-                                        Icons.Filled.Error,
-                                        contentDescription = "Error de validación",
-                                        tint = MaterialTheme.colorScheme.error
+                                        imageVector = if (contrasenaVisible) {
+                                            Icons.Filled.VisibilityOff
+                                        } else {
+                                            Icons.Filled.Visibility
+                                        },
+                                        contentDescription = if (contrasenaVisible) {
+                                            "Ocultar contraseña"
+                                        } else {
+                                            "Mostrar contraseña"
+                                        }
                                     )
                                 }
                             },
@@ -235,20 +254,42 @@ fun LoginScreen(
 
 class RutVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
-        val originalText = text.text
-        if (originalText.isEmpty()) return TransformedText(text, OffsetMapping.Identity)
-
-        var formatted = originalText
-        if (originalText.length > 1) {
-            val cuerpo = originalText.substring(0, originalText.length - 1)
-            val dv = originalText.substring(originalText.length - 1)
-            val cuerpoFormateado = cuerpo.reversed().chunked(3).joinToString(".").reversed()
-            formatted = "$cuerpoFormateado-$dv"
+        val raw = text.text
+        if (raw.length <= 1) {
+            return TransformedText(text, OffsetMapping.Identity)
         }
 
+        val cuerpo = raw.dropLast(1)
+        val dv = raw.last()
+        val cuerpoFormateado = cuerpo.reversed().chunked(3).joinToString(".").reversed()
+        val formatted = "$cuerpoFormateado-$dv"
+
+        val origToTrans = IntArray(raw.length + 1)
+        var transIdx = 0
+        for (i in raw.indices) {
+            origToTrans[i] = transIdx
+            transIdx++
+            while (transIdx < formatted.length && (formatted[transIdx] == '.' || formatted[transIdx] == '-')) {
+                transIdx++
+            }
+        }
+        origToTrans[raw.length] = formatted.length
+
         val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int = formatted.length
-            override fun transformedToOriginal(offset: Int): Int = originalText.length
+            override fun originalToTransformed(offset: Int): Int {
+                return origToTrans[offset.coerceIn(0, raw.length)]
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                val safeOffset = offset.coerceIn(0, formatted.length)
+                var rawCount = 0
+                for (i in 0 until safeOffset) {
+                    if (formatted[i] != '.' && formatted[i] != '-') {
+                        rawCount++
+                    }
+                }
+                return rawCount.coerceIn(0, raw.length)
+            }
         }
 
         return TransformedText(AnnotatedString(formatted), offsetMapping)

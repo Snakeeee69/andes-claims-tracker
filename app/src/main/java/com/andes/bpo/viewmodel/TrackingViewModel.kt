@@ -8,6 +8,7 @@ import com.andes.bpo.data.repository.SiniestroRepository
 import com.andes.bpo.model.TrackingUiState
 import com.andes.bpo.utils.SesionUsuario
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,6 +71,11 @@ class TrackingViewModel(
                 inicialesUsuario = iniciales
             )
 
+            // Sincroniza en segundo plano con ms-siniestros (MySQL)
+            launch(Dispatchers.IO) {
+                repository.sincronizarSiniestrosDeUsuario(usuario.rut, usuario.idUsuario)
+            }
+
             try {
                 repository.getSiniestrosPorUsuario(
                     usuario.idUsuario
@@ -78,12 +84,12 @@ class TrackingViewModel(
                     val entity = listaSiniestros.firstOrNull()
 
                     if (entity != null) {
-                        val paso = when (entity.etapaNombre) {
-                            "Recibido" -> 1
-                            "En evaluación" -> 2
-                            "En liquidación" -> 3
-                            "Cerrado" -> 4
-                            else -> 0
+                        val paso = when {
+                            entity.etapaNombre.equals("Recibido", ignoreCase = true) -> 1
+                            entity.etapaNombre.contains("evaluaci", ignoreCase = true) -> 2
+                            entity.etapaNombre.contains("liquidaci", ignoreCase = true) -> 3
+                            entity.etapaNombre.equals("Cerrado", ignoreCase = true) -> 4
+                            else -> 1
                         }
 
                         _uiState.value = TrackingUiState(
