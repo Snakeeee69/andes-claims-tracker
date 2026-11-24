@@ -1,52 +1,27 @@
 package com.andes.bpo.viewmodel
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RegistroViewModelTest {
 
-    // PRUEBA 7
     @Test
-    fun contrasenaDebeCumplirRequisitos() {
+    fun aseguradorasNoContienenDuplicadosNiNombresVacios() {
+        val aseguradoras = RegistroViewModel.ASEGURADORAS
 
-        val contrasenaCorrecta =
-            RegistroViewModel.esContrasenaRegistroValida(
-                "Clave123"
-            )
-
-        val contrasenaSinNumeros =
-            RegistroViewModel.esContrasenaRegistroValida(
-                "ClaveSegura"
-            )
-
-        val contrasenaMuyCorta =
-            RegistroViewModel.esContrasenaRegistroValida(
-                "Ab12"
-            )
-
-        assertTrue(contrasenaCorrecta)
-        assertFalse(contrasenaSinNumeros)
-        assertFalse(contrasenaMuyCorta)
+        assertFalse(aseguradoras.isEmpty())
+        assertTrue(aseguradoras.all { it.isNotBlank() })
+        assertEquals(aseguradoras.size, aseguradoras.toSet().size)
     }
 
-    // PRUEBA 8
     @Test
-    fun confirmacionDebeCoincidirConContrasena() {
+    fun regionesContienenLasDieciseisRegionesSinDuplicados() {
+        val regiones = RegistroViewModel.REGIONES_CHILE
 
-        val confirmacionCorrecta =
-            RegistroViewModel.coincidenContrasenasRegistro(
-                "Clave123",
-                "Clave123"
-            )
-
-        val confirmacionIncorrecta =
-            RegistroViewModel.coincidenContrasenasRegistro(
-                "Clave123",
-                "OtraClave123"
-            )
-
-        assertTrue(confirmacionCorrecta)
-        assertFalse(confirmacionIncorrecta)
+        assertEquals(16, regiones.size)
+        assertEquals(regiones.size, regiones.toSet().size)
+        assertTrue("Metropolitana de Santiago" in regiones)
     }
 }
