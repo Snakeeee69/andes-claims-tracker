@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -113,9 +113,9 @@ class BandejaAnalistaViewModel(
         val tipo = siniestro.tipoSiniestroNombre.trim()
         val equipo = when {
             siniestro.idArea == 1 ||
-                    tipo.startsWith("Vehículo", true) ||
+                    tipo.startsWith("VehÃ­culo", true) ||
                     tipo.startsWith("Vehiculo", true) ||
-                    tipo.equals("Colisión", true) ||
+                    tipo.equals("ColisiÃ³n", true) ||
                     tipo.equals("Choque", true) -> "VEHICULOS"
 
             siniestro.idArea == 2 ||
@@ -144,24 +144,50 @@ class BandejaAnalistaViewModel(
 
         liquidadoresJob = viewModelScope.launch {
             try {
-                val docs = siniestroDao.getDocumentosPorSiniestro(siniestro.idSiniestro).first()
-                val lista = usuarioDao.obtenerLiquidadoresPorEquipo(equipo).first()
-
+                val docs = withContext(Dispatchers.IO) {
+                    siniestroDao.getDocumentosPorSiniestro(siniestro.idSiniestro).first()
+                }
                 _uiState.update {
                     if (it.idCasoSeleccionado == siniestro.idSiniestro) {
-                        it.copy(
-                            documentosCasoSeleccionado = docs,
-                            liquidadores = lista,
-                            cargandoLiquidadores = false
-                        )
+                        it.copy(documentosCasoSeleccionado = docs)
                     } else it
                 }
+
+                usuarioDao.obtenerLiquidadoresPorEquipo(equipo).collectLatest { lista ->
+                    val disponibles = lista.ifEmpty {
+                        usuarioDao.obtenerTodosLosUsuarios().first().filter { u ->
+                            u.rol.startsWith("LIQUIDADOR")
+                        }
+                    }
+                    _uiState.update {
+                        if (it.idCasoSeleccionado == siniestro.idSiniestro) {
+                            it.copy(
+                                liquidadores = disponibles,
+                                cargandoLiquidadores = false,
+                                errorAsignacion = if (disponibles.isEmpty()) {
+                                    "No hay liquidadores registrados"
+                                } else null
+                            )
+                        } else it
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(cargandoLiquidadores = false, errorAsignacion = "No se pudieron cargar los liquidadores")
+                    it.copy(
+                        cargandoLiquidadores = false,
+                        errorAsignacion = e.message ?: "No se pudieron cargar los liquidadores"
+                    )
                 }
             }
         }
+    }
+
+    private fun resolverIdOperador(rutSesion: String, idFallback: Int): Int {
+        return _uiState.value.todosLosUsuarios
+            .firstOrNull { it.rut == rutSesion }
+            ?.idUsuario ?: idFallback
     }
 
     fun asignarLiquidador(idLiquidador: Int) {
@@ -178,12 +204,13 @@ class BandejaAnalistaViewModel(
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idOperador = resolverIdOperador(usuario.rut, usuario.idUsuario)
 
                 withContext(Dispatchers.IO) {
                     siniestroDao.asignarLiquidadorConHistorial(
                         idSiniestro = idCaso,
                         idLiquidador = idLiquidador,
-                        idAnalista = usuario.idUsuario,
+                        idAnalista = idOperador,
                         fechaHora = fecha
                     )
                 }
@@ -193,12 +220,18 @@ class BandejaAnalistaViewModel(
                         asignando = false,
                         idCasoSeleccionado = null,
                         liquidadores = emptyList(),
+                        errorAsignacion = null,
                         mensaje = "Liquidador asignado y notificado correctamente"
                     )
                 }
             } catch (e: Exception) {
+                val msgError = e.message ?: "No se pudo asignar el siniestro"
                 _uiState.update {
-                    it.copy(asignando = false, errorAsignacion = e.message ?: "No se pudo asignar el siniestro")
+                    it.copy(
+                        asignando = false,
+                        errorAsignacion = msgError,
+                        mensaje = msgError
+                    )
                 }
             }
         }
@@ -208,9 +241,12 @@ class BandejaAnalistaViewModel(
         val usuario = SesionUsuario.obtenerSesion()
         if (usuario?.rol != "ANALISTA" && usuario?.rol != "ADMINISTRADOR") return
 
-        if (diasProrroga !in listOf(90, 180) || motivo.trim().length < 15) {
+        val diasNormalizados = if (diasProrroga in listOf(90, 180)) diasProrroga else 90
+        val motivoLimpio = motivo.trim()
+
+        if (motivoLimpio.length < 5) {
             _uiState.update {
-                it.copy(errorAsignacion = "Selecciona 90 o 180 días y fundamenta en al menos 15 caracteres")
+                it.copy(errorAsignacion = "Escribe al menos 5 caracteres para fundamentar la prÃ³rroga")
             }
             return
         }
@@ -218,23 +254,33 @@ class BandejaAnalistaViewModel(
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idOperador = resolverIdOperador(usuario.rut, usuario.idUsuario)
+
                 withContext(Dispatchers.IO) {
                     siniestroDao.aplicarProrrogaAnalista(
                         idSiniestro = idSiniestro,
-                        idAnalista = usuario.idUsuario,
-                        diasProrroga = diasProrroga,
-                        motivo = motivo.trim(),
+                        idAnalista = idOperador,
+                        diasProrroga = diasNormalizados,
+                        motivo = motivoLimpio,
                         fechaHora = fecha
                     )
                 }
+
                 _uiState.update {
                     it.copy(
                         idCasoSeleccionado = null,
-                        mensaje = "Prórroga de $diasProrroga días registrada y notificada"
+                        errorAsignacion = null,
+                        mensaje = "PrÃ³rroga de $diasNormalizados dÃ­as aplicada correctamente"
                     )
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorAsignacion = e.message ?: "No se pudo aplicar la prórroga") }
+                val msgError = e.message ?: "No se pudo aplicar la prÃ³rroga"
+                _uiState.update {
+                    it.copy(
+                        errorAsignacion = msgError,
+                        mensaje = msgError
+                    )
+                }
             }
         }
     }
@@ -287,7 +333,7 @@ class BandejaAnalistaViewModel(
                 }
                 _uiState.update {
                     it.copy(
-                        mensaje = if (filas > 0) "Usuario eliminado correctamente" else "No se encontró el usuario"
+                        mensaje = if (filas > 0) "Usuario eliminado correctamente" else "No se encontrÃ³ el usuario"
                     )
                 }
             } catch (e: Exception) {

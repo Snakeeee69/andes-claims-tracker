@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -62,9 +62,9 @@ fun MisSiniestrosScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("Aún no tienes siniestros registrados", style = MaterialTheme.typography.titleMedium)
+                Text("AÃºn no tienes siniestros registrados", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
-                Text("Presiona el botón + para reportar uno.")
+                Text("Presiona el botÃ³n + para reportar uno.")
             }
 
             else -> LazyColumn(
@@ -123,12 +123,12 @@ private fun TarjetaSiniestro(
             Text("Reporte: ${siniestro.fechaReporte}", style = MaterialTheme.typography.bodySmall)
             if (expandido) {
                 HorizontalDivider()
-                Text("Póliza: ${siniestro.numeroPoliza}")
+                Text("PÃ³liza: ${siniestro.numeroPoliza}")
                 Text("Ocurrencia: ${siniestro.fechaOcurrencia}")
                 Text("Comuna: ${siniestro.comunaNombre}")
-                Text("Descripción: ${siniestro.descripcion}")
+                Text("DescripciÃ³n: ${siniestro.descripcion}")
                 Text("Liquidador: ${siniestro.liquidadorNombre ?: "Sin asignar"}")
-                Text("Próximo paso: ${siniestro.proximoPasoTexto}")
+                Text("PrÃ³ximo paso: ${siniestro.proximoPasoTexto}")
                 if (siniestro.etapaNombre == "Cerrado") {
                     HorizontalDivider()
                     Text("Resultado del siniestro", fontWeight = FontWeight.Bold)

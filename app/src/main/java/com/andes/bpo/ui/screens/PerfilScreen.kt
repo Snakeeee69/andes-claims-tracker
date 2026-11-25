@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -86,7 +86,7 @@ fun PerfilScreen(
         if (concedido) {
             launcherCamara.launch(null)
         } else {
-            Toast.makeText(context, "Activa el permiso de Cámara para tomar una foto", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Activa el permiso de CÃ¡mara para tomar una foto", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -96,7 +96,7 @@ fun PerfilScreen(
         if (concedido) {
             launcherGaleria.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         } else {
-            Toast.makeText(context, "Activa el permiso de Galería para elegir una foto", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Activa el permiso de GalerÃ­a para elegir una foto", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -145,7 +145,7 @@ fun PerfilScreen(
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Tomar foto con Cámara")
+                        Text("Tomar foto con CÃ¡mara")
                     }
                     OutlinedButton(
                         onClick = { abrirGaleria() },
@@ -153,7 +153,7 @@ fun PerfilScreen(
                     ) {
                         Icon(Icons.Default.PhotoLibrary, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Elegir desde Galería")
+                        Text("Elegir desde GalerÃ­a")
                     }
                 }
             },
@@ -167,8 +167,8 @@ fun PerfilScreen(
     if (mostrarConfirmacionSalir) {
         AlertDialog(
             onDismissRequest = { mostrarConfirmacionSalir = false },
-            title = { Text("Cerrar sesión", fontWeight = FontWeight.Bold) },
-            text = { Text("¿Estás seguro de que deseas salir de tu cuenta?") },
+            title = { Text("Cerrar sesiÃ³n", fontWeight = FontWeight.Bold) },
+            text = { Text("Â¿EstÃ¡s seguro de que deseas salir de tu cuenta?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -179,7 +179,7 @@ fun PerfilScreen(
                         }
                     }
                 ) {
-                    Text("Sí, cerrar sesión", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    Text("SÃ­, cerrar sesiÃ³n", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -256,7 +256,7 @@ fun PerfilScreen(
                     }
 
                     TextButton(onClick = { mostrarSelectorFoto = true }) {
-                        Text("Cambiar foto (Cámara o Galería)", color = PrimaryAndes)
+                        Text("Cambiar foto (CÃ¡mara o GalerÃ­a)", color = PrimaryAndes)
                     }
 
                     val nombreCompleto = "${estado.nombre} ${estado.apellido}".trim()
@@ -301,7 +301,7 @@ fun PerfilScreen(
                 OutlinedTextField(
                     value = estado.correo,
                     onValueChange = viewModel::cambiarCorreo,
-                    label = { Text("Correo electrónico") },
+                    label = { Text("Correo electrÃ³nico") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = estado.errorCorreo != null,
@@ -318,12 +318,12 @@ fun PerfilScreen(
 
                 HorizontalDivider()
 
-                Text("Cambiar contraseña", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = PrimaryAndes)
+                Text("Cambiar contraseÃ±a", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = PrimaryAndes)
 
                 OutlinedTextField(
                     value = claveActual,
                     onValueChange = { claveActual = it },
-                    label = { Text("Contraseña actual") },
+                    label = { Text("ContraseÃ±a actual") },
                     visualTransformation = if (verClaveActual) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { verClaveActual = !verClaveActual }) {
@@ -342,7 +342,7 @@ fun PerfilScreen(
                 OutlinedTextField(
                     value = claveNueva,
                     onValueChange = { claveNueva = it },
-                    label = { Text("Nueva contraseña") },
+                    label = { Text("Nueva contraseÃ±a") },
                     visualTransformation = if (verClaveNueva) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { verClaveNueva = !verClaveNueva }) {
@@ -361,7 +361,7 @@ fun PerfilScreen(
                 OutlinedTextField(
                     value = confirmarClave,
                     onValueChange = { confirmarClave = it },
-                    label = { Text("Confirmar nueva contraseña") },
+                    label = { Text("Confirmar nueva contraseÃ±a") },
                     visualTransformation = if (verConfirmar) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { verConfirmar = !verConfirmar }) {
@@ -389,14 +389,14 @@ fun PerfilScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
                 ) {
-                    Text(if (estado.cambiandoClave) "Actualizando..." else "Cambiar contraseña")
+                    Text(if (estado.cambiandoClave) "Actualizando..." else "Cambiar contraseÃ±a")
                 }
 
                 TextButton(
                     onClick = { navController.navigate("recuperar") },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
-                    Text("¿Olvidaste tu contraseña actual? Recuperar por correo", color = PrimaryAndes, fontSize = 13.sp)
+                    Text("Â¿Olvidaste tu contraseÃ±a actual? Recuperar por correo", color = PrimaryAndes, fontSize = 13.sp)
                 }
 
                 estado.errorGeneral?.let { error ->
@@ -425,7 +425,7 @@ fun PerfilScreen(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Cerrar sesión",
+                        text = "Cerrar sesiÃ³n",
                         color = Color(0xFFD32F2F),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp

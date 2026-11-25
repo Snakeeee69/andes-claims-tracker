@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -46,27 +46,27 @@ class RegistroViewModel(
             "Consorcio",
             "MetLife",
             "Bupa Chile",
-            "Banmédica",
+            "BanmÃ©dica",
             "Colmena"
         )
 
         val REGIONES_CHILE = listOf(
             "Arica y Parinacota",
-            "Tarapacá",
+            "TarapacÃ¡",
             "Antofagasta",
             "Atacama",
             "Coquimbo",
-            "Valparaíso",
+            "ValparaÃ­so",
             "Metropolitana de Santiago",
             "Libertador General Bernardo O'Higgins",
             "Maule",
-            "Ñuble",
-            "Biobío",
-            "La Araucanía",
-            "Los Ríos",
+            "Ã‘uble",
+            "BiobÃ­o",
+            "La AraucanÃ­a",
+            "Los RÃ­os",
             "Los Lagos",
-            "Aysén del General Carlos Ibáñez del Campo",
-            "Magallanes y de la Antártica Chilena"
+            "AysÃ©n del General Carlos IbÃ¡Ã±ez del Campo",
+            "Magallanes y de la AntÃ¡rtica Chilena"
         )
 
         private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
@@ -129,11 +129,11 @@ class RegistroViewModel(
         if (rutSinFormato.isBlank()) {
             nuevosErrores["rut"] = "Ingresa tu RUT"
         } else if (!esRutValido(rutSinFormato)) {
-            nuevosErrores["rut"] = "RUT inválido (ej: 12.345.678-K)"
+            nuevosErrores["rut"] = "RUT invÃ¡lido (ej: 12.345.678-K)"
         }
 
         if (s.nombre.trim().length < 2) {
-            nuevosErrores["nombre"] = if (esEmpresa) "Ingresa la razón social" else "Ingresa tu nombre"
+            nuevosErrores["nombre"] = if (esEmpresa) "Ingresa la razÃ³n social" else "Ingresa tu nombre"
         }
 
         if (s.apellido.trim().length < 2) {
@@ -141,9 +141,9 @@ class RegistroViewModel(
         }
 
         if (s.correo.isBlank()) {
-            nuevosErrores["correo"] = "Ingresa tu correo electrónico"
+            nuevosErrores["correo"] = "Ingresa tu correo electrÃ³nico"
         } else if (!EMAIL_REGEX.matches(s.correo.trim())) {
-            nuevosErrores["correo"] = "Formato de correo inválido"
+            nuevosErrores["correo"] = "Formato de correo invÃ¡lido"
         }
 
         if (s.aseguradora.isBlank()) {
@@ -151,19 +151,19 @@ class RegistroViewModel(
         }
 
         if (s.region.isBlank()) {
-            nuevosErrores["region"] = "Selecciona una región"
+            nuevosErrores["region"] = "Selecciona una regiÃ³n"
         }
 
         if (s.contrasena == "123456" || s.contrasena.length < 6) {
-            nuevosErrores["contrasena"] = "La contraseña debe tener al menos 6 caracteres y no ser 123456"
+            nuevosErrores["contrasena"] = "La contraseÃ±a debe tener al menos 6 caracteres y no ser 123456"
         }
 
         if (s.confirmacion != s.contrasena) {
-            nuevosErrores["confirmacion"] = "Las contraseñas no coinciden"
+            nuevosErrores["confirmacion"] = "Las contraseÃ±as no coinciden"
         }
 
         if (!s.aceptaTerminos) {
-            nuevosErrores["terminos"] = "Debes aceptar los Términos y Condiciones"
+            nuevosErrores["terminos"] = "Debes aceptar los TÃ©rminos y Condiciones"
         }
 
         if (nuevosErrores.isNotEmpty()) {
@@ -220,7 +220,7 @@ class RegistroViewModel(
                 _uiState.update {
                     it.copy(
                         guardando = false,
-                        errorGeneral = "Sin conexión con el servidor (10.0.2.2:8080)"
+                        errorGeneral = "Sin conexiÃ³n con el servidor (10.0.2.2:8080)"
                     )
                 }
             } catch (e: Exception) {

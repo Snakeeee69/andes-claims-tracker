@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -52,7 +52,7 @@ fun HistorialScreen(
                 ),
                 title = {
                     Column {
-                        Text("Ficha y Bitácora del Caso", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Ficha y BitÃ¡cora del Caso", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         if (estado.numeroSiniestro.isNotEmpty()) {
                             Text(
                                 estado.numeroSiniestro,
@@ -122,8 +122,8 @@ fun HistorialScreen(
                                     )
                                     siniestroDetalle?.let { sin ->
                                         Text(sin.tipoSiniestroNombre, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                                        Text("${sin.companiaNombre} · Póliza ${sin.numeroPoliza}", fontSize = 12.sp)
-                                        Text("Comuna: ${sin.comunaNombre} · Ocurrencia: ${sin.fechaOcurrencia}", fontSize = 12.sp, color = Color.DarkGray)
+                                        Text("${sin.companiaNombre} Â· PÃ³liza ${sin.numeroPoliza}", fontSize = 12.sp)
+                                        Text("Comuna: ${sin.comunaNombre} Â· Ocurrencia: ${sin.fechaOcurrencia}", fontSize = 12.sp, color = Color.DarkGray)
                                         Text(sin.descripcion, fontSize = 12.sp, color = Color.DarkGray)
                                         Text(
                                             text = "Liquidador: ${sin.liquidadorNombre ?: "Sin asignar"}",
@@ -153,7 +153,7 @@ fun HistorialScreen(
                         if (estado.gestiones.isEmpty()) {
                             item {
                                 Text(
-                                    text = "Aún no hay gestiones registradas.",
+                                    text = "AÃºn no hay gestiones registradas.",
                                     color = Color.Gray,
                                     modifier = Modifier.padding(vertical = 12.dp)
                                 )

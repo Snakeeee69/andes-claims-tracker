@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -79,7 +79,7 @@ fun BandejaAnalistaScreen(
         it.motivoRechazoLiquidador != null && it.etapaNombre != "Cerrado"
     }
     val enSeguimientoActivos = estado.todosLosCasos.filter {
-        it.etapaNombre == "En evaluación" || it.etapaNombre == "En liquidación"
+        it.etapaNombre == "En evaluaciÃ³n" || it.etapaNombre == "En liquidaciÃ³n"
     }
     val cerrados = estado.todosLosCasos.filter {
         it.etapaNombre == "Cerrado"
@@ -109,7 +109,7 @@ fun BandejaAnalistaScreen(
                             Icon(Icons.Default.Inbox, contentDescription = null)
                         }
                     },
-                    label = { Text(if (esModoAdmin) "Supervisión" else "Bandeja", fontSize = 11.sp) }
+                    label = { Text(if (esModoAdmin) "SupervisiÃ³n" else "Bandeja", fontSize = 11.sp) }
                 )
 
                 if (esModoAdmin) {
@@ -125,7 +125,7 @@ fun BandejaAnalistaScreen(
                         onClick = { tabInferior = "catalogo" },
                         colors = navItemColors,
                         icon = { Icon(Icons.Default.GridView, contentDescription = null) },
-                        label = { Text("Áreas", fontSize = 11.sp) }
+                        label = { Text("Ãreas", fontSize = 11.sp) }
                     )
                 } else {
                     NavigationBarItem(
@@ -176,13 +176,13 @@ fun BandejaAnalistaScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (esModoAdmin) "ADMINISTRADOR · GOBERNANZA" else "ANALISTA OPERATIVO · SINIESTROS",
+                                text = if (esModoAdmin) "ADMINISTRADOR Â· GOBERNANZA" else "ANALISTA OPERATIVO Â· SINIESTROS",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MintAndes,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = if (esModoAdmin) "Control Total Andes BPO" else "Centro de Asignación y Plazos",
+                                text = if (esModoAdmin) "Control Total Andes BPO" else "Centro de AsignaciÃ³n y Plazos",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
@@ -257,7 +257,7 @@ fun BandejaAnalistaScreen(
                                 OutlinedTextField(
                                     value = textoBusqueda,
                                     onValueChange = { textoBusqueda = it },
-                                    placeholder = { Text("Buscar por N° siniestro, póliza o ramo...", fontSize = 13.sp) },
+                                    placeholder = { Text("Buscar por NÂ° siniestro, pÃ³liza o ramo...", fontSize = 13.sp) },
                                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryAndes) },
                                     trailingIcon = {
                                         if (textoBusqueda.isNotEmpty()) {
@@ -337,7 +337,7 @@ fun BandejaAnalistaScreen(
                                             text = if (filtroCasos == "rechazados") {
                                                 "Casos rechazados por liquidador (${prioritarios.size})"
                                             } else {
-                                                "Requieren asignación o reasignación (${prioritarios.size})"
+                                                "Requieren asignaciÃ³n o reasignaciÃ³n (${prioritarios.size})"
                                             },
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold,
@@ -353,7 +353,7 @@ fun BandejaAnalistaScreen(
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 Text(
-                                                    text = "Sin casos pendientes de asignación en esta vista.",
+                                                    text = "Sin casos pendientes de asignaciÃ³n en esta vista.",
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = Color.Gray,
                                                     modifier = Modifier.padding(14.dp)
@@ -380,7 +380,7 @@ fun BandejaAnalistaScreen(
                                     item {
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "En evaluación y liquidación (${enCurso.size})",
+                                            text = "En evaluaciÃ³n y liquidaciÃ³n (${enCurso.size})",
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = PrimaryAndes
@@ -395,7 +395,7 @@ fun BandejaAnalistaScreen(
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 Text(
-                                                    text = "No hay casos asignados en evaluación o liquidación.",
+                                                    text = "No hay casos asignados en evaluaciÃ³n o liquidaciÃ³n.",
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = Color.Gray,
                                                     modifier = Modifier.padding(14.dp)
@@ -478,7 +478,7 @@ fun BandejaAnalistaScreen(
                                 it.idLiquidador == liq.idUsuario && it.etapaNombre == "Cerrado"
                             }
                             val etiquetaEquipo = when (liq.equipo) {
-                                "VEHICULOS" -> "Vehículos"
+                                "VEHICULOS" -> "VehÃ­culos"
                                 "HOGAR" -> "Hogar e Incendio"
                                 "SALUD" -> "Salud y Vida"
                                 else -> liq.equipo ?: "General"
@@ -528,7 +528,7 @@ fun BandejaAnalistaScreen(
                                     }
 
                                     Text(
-                                        text = "RUT ${liq.rut} · ${liq.correo} · $cerradosLiq cerrados",
+                                        text = "RUT ${liq.rut} Â· ${liq.correo} Â· $cerradosLiq cerrados",
                                         fontSize = 11.sp,
                                         color = Color.Gray
                                     )
@@ -543,7 +543,7 @@ fun BandejaAnalistaScreen(
                                                     .padding(vertical = 2.dp),
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
-                                                Text("${c.numero} · ${c.tipoSiniestroNombre}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                                Text("${c.numero} Â· ${c.tipoSiniestroNombre}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                                 Text(c.etapaNombre, fontSize = 11.sp, color = PrimaryAndes)
                                             }
                                         }
@@ -620,7 +620,7 @@ fun BandejaAnalistaScreen(
                                             )
                                             if (casoVinculado != null) {
                                                 Text(
-                                                    text = "Toca para revisar ${casoVinculado.numero} →",
+                                                    text = "Toca para revisar ${casoVinculado.numero} â†’",
                                                     fontSize = 11.sp,
                                                     color = PrimaryAndes,
                                                     fontWeight = FontWeight.Bold
@@ -715,7 +715,7 @@ fun BandejaAnalistaScreen(
                     ) {
                         item {
                             Text(
-                                "Catálogo de áreas y ramos asegurados (${estado.areasCatalogo.size})",
+                                "CatÃ¡logo de Ã¡reas y ramos asegurados (${estado.areasCatalogo.size})",
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryAndes,
                                 style = MaterialTheme.typography.titleSmall
@@ -726,9 +726,9 @@ fun BandejaAnalistaScreen(
                             val activosArea = estado.todosLosCasos.count { it.idArea == area.idArea && it.etapaNombre != "Cerrado" }
                             val polizas = area.polizasDisponibles.split("|").filter { it.isNotBlank() }
                             val esp = when (area.idArea) {
-                                1 -> "Javier Paredes · Equipo Vehículos"
-                                2 -> "Nacho Vargas · Equipo Hogar"
-                                3 -> "Elena Vargas · Equipo Salud"
+                                1 -> "Javier Paredes Â· Equipo VehÃ­culos"
+                                2 -> "Nacho Vargas Â· Equipo Hogar"
+                                3 -> "Elena Vargas Â· Equipo Salud"
                                 else -> "Sin especialista titular"
                             }
 
@@ -754,7 +754,7 @@ fun BandejaAnalistaScreen(
                                         }
                                     }
                                     Text(
-                                        text = "Pólizas habilitadas: ${polizas.joinToString(", ")}",
+                                        text = "PÃ³lizas habilitadas: ${polizas.joinToString(", ")}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = Color.DarkGray
                                     )
@@ -783,7 +783,7 @@ fun BandejaAnalistaScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "¿Seguro que deseas eliminar permanentemente esta cuenta del sistema?",
+                        text = "Â¿Seguro que deseas eliminar permanentemente esta cuenta del sistema?",
                         fontSize = 13.sp
                     )
                     Surface(
@@ -831,6 +831,12 @@ fun BandejaAnalistaScreen(
         var diasProrroga by remember(casoSel.idSiniestro) { mutableStateOf(90) }
         var justificacionProrroga by remember(casoSel.idSiniestro) { mutableStateOf("") }
 
+        LaunchedEffect(estado.liquidadores) {
+            if (liqSeleccionado == null && estado.liquidadores.isNotEmpty()) {
+                liqSeleccionado = estado.liquidadores.first().idUsuario
+            }
+        }
+
         val chipDialogColors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = PrimaryAndes,
             selectedLabelColor = Color.White
@@ -839,7 +845,7 @@ fun BandejaAnalistaScreen(
         AlertDialog(
             onDismissRequest = { viewModel.cerrarSeleccion() },
             containerColor = Color.White,
-            title = { Text("Gestión ${casoSel.numero}", fontWeight = FontWeight.Bold, color = PrimaryAndes) },
+            title = { Text("GestiÃ³n ${casoSel.numero}", fontWeight = FontWeight.Bold, color = PrimaryAndes) },
             text = {
                 Column(
                     modifier = Modifier
@@ -847,14 +853,30 @@ fun BandejaAnalistaScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    estado.errorAsignacion?.let { msgError ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = msgError,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                    }
+
                     Surface(
                         color = MintAndes.copy(alpha = 0.65f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text(casoSel.tipoSiniestroNombre, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = PrimaryAndes)
-                            Text("${casoSel.companiaNombre} · Póliza ${casoSel.numeroPoliza}", fontSize = 12.sp)
-                            Text("Etapa: ${casoSel.etapaNombre} · ${casoSel.comunaNombre}", fontSize = 11.sp, color = Color.DarkGray)
+                            Text("${casoSel.companiaNombre} Â· PÃ³liza ${casoSel.numeroPoliza}", fontSize = 12.sp)
+                            Text("Etapa: ${casoSel.etapaNombre} Â· ${casoSel.comunaNombre}", fontSize = 11.sp, color = Color.DarkGray)
                             Text(casoSel.descripcion, fontSize = 11.sp, color = Color.DarkGray)
                             if (casoSel.liquidadorNombre != null) {
                                 Text("Liquidador: ${casoSel.liquidadorNombre}", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = PrimaryAndes)
@@ -890,7 +912,7 @@ fun BandejaAnalistaScreen(
                         ) {
                             Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(15.dp), tint = PrimaryAndes)
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Bitácora", fontSize = 11.sp, color = PrimaryAndes)
+                            Text("BitÃ¡cora", fontSize = 11.sp, color = PrimaryAndes)
                         }
                     }
 
@@ -919,7 +941,7 @@ fun BandejaAnalistaScreen(
                             selected = modoSheet == "prorroga",
                             onClick = { modoSheet = "prorroga" },
                             colors = chipDialogColors,
-                            label = { Text("Prórroga legal", fontSize = 12.sp) },
+                            label = { Text("PrÃ³rroga legal", fontSize = 12.sp) },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -963,40 +985,42 @@ fun BandejaAnalistaScreen(
                                         )
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text("${liq.nombre} ${liq.apellido}", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                                            Text("Especialidad: ${liq.equipo} · $cargaLiq casos activos", fontSize = 11.sp, color = Color.DarkGray)
+                                            Text("Especialidad: ${liq.equipo ?: "General"} Â· $cargaLiq casos activos", fontSize = 11.sp, color = Color.DarkGray)
                                         }
                                     }
                                 }
                             }
                         }
                     } else {
-                        Text("Prórroga fundada D.S. N° 1.055:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text("PrÃ³rroga fundada D.S. NÂ° 1.055:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
                                 selected = diasProrroga == 90,
                                 onClick = { diasProrroga = 90 },
                                 colors = chipDialogColors,
-                                label = { Text("90 días") }
+                                label = { Text("90 dÃ­as") }
                             )
                             FilterChip(
                                 selected = diasProrroga == 180,
                                 onClick = { diasProrroga = 180 },
                                 colors = chipDialogColors,
-                                label = { Text("180 días") }
+                                label = { Text("180 dÃ­as") }
                             )
                         }
+                        val largoActual = justificacionProrroga.trim().length
                         OutlinedTextField(
                             value = justificacionProrroga,
                             onValueChange = { justificacionProrroga = it.take(300) },
-                            label = { Text("Justificación fundada") },
+                            label = { Text("JustificaciÃ³n fundada") },
                             minLines = 3,
-                            supportingText = { Text("Mínimo 15 caracteres") },
+                            supportingText = {
+                                Text(
+                                    text = if (largoActual < 5) "Faltan ${5 - largoActual} caracteres (mÃ­nimo 5)" else "$largoActual/300 caracteres",
+                                    color = if (largoActual < 5) MaterialTheme.colorScheme.error else PrimaryAndes
+                                )
+                            },
                             modifier = Modifier.fillMaxWidth()
                         )
-                    }
-
-                    estado.errorAsignacion?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                     }
                 }
             },
@@ -1006,7 +1030,7 @@ fun BandejaAnalistaScreen(
                     enabled = if (modoSheet == "liq") {
                         liqSeleccionado != null && !estado.asignando
                     } else {
-                        justificacionProrroga.trim().length >= 15
+                        justificacionProrroga.trim().length >= 5
                     },
                     onClick = {
                         if (modoSheet == "liq") {
@@ -1018,9 +1042,9 @@ fun BandejaAnalistaScreen(
                 ) {
                     Text(
                         if (modoSheet == "liq") {
-                            if (estado.asignando) "Asignando..." else "Confirmar asignación"
+                            if (estado.asignando) "Asignando..." else "Confirmar asignaciÃ³n"
                         } else {
-                            "Aplicar prórroga"
+                            "Aplicar prÃ³rroga"
                         }
                     )
                 }
@@ -1103,17 +1127,17 @@ private fun CardCasoAnalistaCompleto(
             if (siniestro.modeloVehiculo.isNotBlank()) {
                 Text(siniestro.modeloVehiculo, fontSize = 12.sp, color = Color.DarkGray)
             }
-            Text("${siniestro.companiaNombre} · Póliza ${siniestro.numeroPoliza}", fontSize = 12.sp, color = Color.DarkGray)
-            Text("Ingreso: ${siniestro.fechaReporte} · ${siniestro.comunaNombre}", fontSize = 11.sp, color = Color.Gray)
+            Text("${siniestro.companiaNombre} Â· PÃ³liza ${siniestro.numeroPoliza}", fontSize = 12.sp, color = Color.DarkGray)
+            Text("Ingreso: ${siniestro.fechaReporte} Â· ${siniestro.comunaNombre}", fontSize = 11.sp, color = Color.Gray)
 
             if (siniestro.idLiquidador != null) {
                 val estadoAceptacion = when (siniestro.aceptadoPorLiquidador) {
                     true -> "Aceptado"
                     false -> "Rechazado"
-                    null -> "Pendiente de aceptación (2d háb.)"
+                    null -> "Pendiente de aceptaciÃ³n (2d hÃ¡b.)"
                 }
                 Text(
-                    text = "Liquidador: ${siniestro.liquidadorNombre} · $estadoAceptacion",
+                    text = "Liquidador: ${siniestro.liquidadorNombre} Â· $estadoAceptacion",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryAndes
@@ -1129,7 +1153,7 @@ private fun CardCasoAnalistaCompleto(
                     ) {
                         Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
                         Text(
-                            text = "Rechazado — $motivo",
+                            text = "Rechazado â€” $motivo",
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             fontSize = 11.sp
                         )
@@ -1161,7 +1185,7 @@ private fun CardCasoAnalistaCompleto(
                 ) {
                     Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(15.dp), tint = PrimaryAndes)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Bitácora", fontSize = 12.sp, color = PrimaryAndes)
+                    Text("BitÃ¡cora", fontSize = 12.sp, color = PrimaryAndes)
                 }
             }
 
@@ -1177,7 +1201,7 @@ private fun CardCasoAnalistaCompleto(
                         text = when {
                             esRechazado -> "Reasignar Liquidador"
                             siniestro.idLiquidador == null -> "Asignar Liquidador"
-                            else -> "Prórroga Legal / Reasignar"
+                            else -> "PrÃ³rroga Legal / Reasignar"
                         },
                         fontWeight = FontWeight.Bold
                     )
@@ -1202,9 +1226,9 @@ private fun CardUsuarioAdmin(
         "ASEGURADO_EMPRESA" to "Asegurado 2 (Empresa / Corredor)",
         "ANALISTA" to "Analista Operativo",
         "ADMINISTRADOR" to "Administrador",
-        "LIQUIDADOR_VEHICULOS" to "Liquidador · Vehículos",
-        "LIQUIDADOR_HOGAR" to "Liquidador · Hogar",
-        "LIQUIDADOR_SALUD" to "Liquidador · Salud"
+        "LIQUIDADOR_VEHICULOS" to "Liquidador Â· VehÃ­culos",
+        "LIQUIDADOR_HOGAR" to "Liquidador Â· Hogar",
+        "LIQUIDADOR_SALUD" to "Liquidador Â· Salud"
     )
     var expandido by remember { mutableStateOf(false) }
     val etiquetaActual = opcionesRoles.firstOrNull { it.first == rolActual }?.second ?: rolActual
@@ -1233,7 +1257,7 @@ private fun CardUsuarioAdmin(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(nombre, fontWeight = FontWeight.Bold, color = PrimaryAndes)
-                    Text("RUT $rut · $correo", fontSize = 12.sp, color = Color.DarkGray)
+                    Text("RUT $rut Â· $correo", fontSize = 12.sp, color = Color.DarkGray)
                 }
                 if (esUsuarioActual) {
                     Surface(color = MintAndes, shape = RoundedCornerShape(6.dp)) {

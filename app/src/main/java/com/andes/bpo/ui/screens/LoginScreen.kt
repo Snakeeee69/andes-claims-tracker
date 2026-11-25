@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -140,7 +140,7 @@ fun LoginScreen(
                                 if (uiState.error != null) {
                                     Icon(
                                         Icons.Filled.Error,
-                                        contentDescription = "Error de validación",
+                                        contentDescription = "Error de validaciÃ³n",
                                         tint = MaterialTheme.colorScheme.error
                                     )
                                 }
@@ -153,7 +153,7 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = uiState.contrasena,
                             onValueChange = { viewModel.onContrasenaChange(it) },
-                            label = { Text("Contraseña") },
+                            label = { Text("ContraseÃ±a") },
                             visualTransformation = if (contrasenaVisible) {
                                 VisualTransformation.None
                             } else {
@@ -172,9 +172,9 @@ fun LoginScreen(
                                             Icons.Filled.Visibility
                                         },
                                         contentDescription = if (contrasenaVisible) {
-                                            "Ocultar contraseña"
+                                            "Ocultar contraseÃ±a"
                                         } else {
-                                            "Mostrar contraseña"
+                                            "Mostrar contraseÃ±a"
                                         }
                                     )
                                 }
@@ -222,7 +222,7 @@ fun LoginScreen(
                                 )
                             } else {
                                 Text(
-                                    text = "Iniciar Sesión",
+                                    text = "Iniciar SesiÃ³n",
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                                 )
                             }
@@ -234,7 +234,7 @@ fun LoginScreen(
                             onClick = { navController.navigate("recuperar") }
                         ) {
                             Text(
-                                text = "¿Olvidaste tu contraseña?",
+                                text = "Â¿Olvidaste tu contraseÃ±a?",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -243,7 +243,7 @@ fun LoginScreen(
                         TextButton(
                             onClick = { navController.navigate("registro") }
                         ) {
-                            Text("¿No tienes cuenta? Crear cuenta")
+                            Text("Â¿No tienes cuenta? Crear cuenta")
                         }
                     }
                 }

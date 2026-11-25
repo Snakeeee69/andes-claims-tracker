@@ -1,4 +1,4 @@
-package com.andes.bpo.utils
+﻿package com.andes.bpo.utils
 
 import org.mindrot.jbcrypt.BCrypt
 import java.security.MessageDigest
@@ -19,7 +19,7 @@ object PasswordUtils {
 
     fun generarHash(contrasena: String): PasswordData {
         require(contrasena.isNotBlank()) {
-            "La contraseña no puede estar vacía"
+            "La contraseÃ±a no puede estar vacÃ­a"
         }
 
         val salt = ByteArray(16)
@@ -34,7 +34,7 @@ object PasswordUtils {
 
     fun generarHashBCrypt(contrasena: String): PasswordData {
         require(contrasena.isNotBlank()) {
-            "La contraseña no puede estar vacía"
+            "La contraseÃ±a no puede estar vacÃ­a"
         }
         val salt = BCrypt.gensalt()
         val hash = BCrypt.hashpw(contrasena, salt)

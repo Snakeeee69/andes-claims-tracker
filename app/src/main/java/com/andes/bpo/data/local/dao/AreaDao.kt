@@ -1,4 +1,4 @@
-package com.andes.bpo.data.local.dao
+﻿package com.andes.bpo.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -33,18 +33,18 @@ interface AreaDao {
             listOf(
                 AreaEntity(
                     idArea = 1,
-                    nombre = "Vehículos / Auto",
-                    polizasDisponibles = "Póliza Automotriz Full Cobertura|Póliza Responsabilidad Civil|Póliza Flota Comercial"
+                    nombre = "VehÃ­culos / Auto",
+                    polizasDisponibles = "PÃ³liza Automotriz Full Cobertura|PÃ³liza Responsabilidad Civil|PÃ³liza Flota Comercial"
                 ),
                 AreaEntity(
                     idArea = 2,
                     nombre = "Hogar / Incendio",
-                    polizasDisponibles = "Póliza Incendio y Sismo|Póliza Robo y Contenido Hogar|Póliza Condominio"
+                    polizasDisponibles = "PÃ³liza Incendio y Sismo|PÃ³liza Robo y Contenido Hogar|PÃ³liza Condominio"
                 ),
                 AreaEntity(
                     idArea = 3,
                     nombre = "Salud / Vida",
-                    polizasDisponibles = "Póliza Complementaria Salud|Póliza Seguro de Vida|Póliza Accidentes Personales"
+                    polizasDisponibles = "PÃ³liza Complementaria Salud|PÃ³liza Seguro de Vida|PÃ³liza Accidentes Personales"
                 )
             )
         )
@@ -52,19 +52,19 @@ interface AreaDao {
         limpiarRequisitos()
         insertarRequisitos(
             listOf(
-                RequisitoAreaEntity(idArea = 1, nombreDocumento = "Fotos daños y patente", esObligatorio = true),
-                RequisitoAreaEntity(idArea = 1, nombreDocumento = "Declaración Jurada Simple (Ley 20.931)", esObligatorio = true),
-                RequisitoAreaEntity(idArea = 1, nombreDocumento = "Licencia y Padrón", esObligatorio = true),
+                RequisitoAreaEntity(idArea = 1, nombreDocumento = "Fotos daÃ±os y patente", esObligatorio = true),
+                RequisitoAreaEntity(idArea = 1, nombreDocumento = "DeclaraciÃ³n Jurada Simple (Ley 20.931)", esObligatorio = true),
+                RequisitoAreaEntity(idArea = 1, nombreDocumento = "Licencia y PadrÃ³n", esObligatorio = true),
                 RequisitoAreaEntity(idArea = 1, nombreDocumento = "Parte policial (robo/lesionados)", esObligatorio = false),
                 RequisitoAreaEntity(idArea = 1, nombreDocumento = "Presupuesto de taller", esObligatorio = false),
-                RequisitoAreaEntity(idArea = 2, nombreDocumento = "Fotos/videos de daños", esObligatorio = true),
-                RequisitoAreaEntity(idArea = 2, nombreDocumento = "Presupuesto o cotización", esObligatorio = true),
+                RequisitoAreaEntity(idArea = 2, nombreDocumento = "Fotos/videos de daÃ±os", esObligatorio = true),
+                RequisitoAreaEntity(idArea = 2, nombreDocumento = "Presupuesto o cotizaciÃ³n", esObligatorio = true),
                 RequisitoAreaEntity(idArea = 2, nombreDocumento = "Denuncia Carabineros/PDI", esObligatorio = false),
                 RequisitoAreaEntity(idArea = 2, nombreDocumento = "Informe de Bomberos", esObligatorio = false),
                 RequisitoAreaEntity(idArea = 2, nombreDocumento = "Boletas/facturas de bienes", esObligatorio = false),
-                RequisitoAreaEntity(idArea = 3, nombreDocumento = "Boletas/facturas/bonos médicos", esObligatorio = true),
-                RequisitoAreaEntity(idArea = 3, nombreDocumento = "Informe o receta médica", esObligatorio = true),
-                RequisitoAreaEntity(idArea = 3, nombreDocumento = "Certificado de defunción", esObligatorio = false),
+                RequisitoAreaEntity(idArea = 3, nombreDocumento = "Boletas/facturas/bonos mÃ©dicos", esObligatorio = true),
+                RequisitoAreaEntity(idArea = 3, nombreDocumento = "Informe o receta mÃ©dica", esObligatorio = true),
+                RequisitoAreaEntity(idArea = 3, nombreDocumento = "Certificado de defunciÃ³n", esObligatorio = false),
                 RequisitoAreaEntity(idArea = 3, nombreDocumento = "Epicrisis hospitalaria", esObligatorio = false)
             )
         )

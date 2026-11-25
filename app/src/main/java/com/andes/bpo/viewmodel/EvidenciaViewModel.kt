@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import android.net.Uri
@@ -51,7 +51,7 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
             _uiState.value = EvidenciaRoomUiState()
             try {
                 val usuario = SesionUsuario.obtenerSesion()
-                    ?: error("Debes iniciar sesión")
+                    ?: error("Debes iniciar sesiÃ³n")
 
                 val esAsegurado = usuario.rol.startsWith("ASEGURADO")
                 val esAnalistaOAdmin = usuario.rol == "ANALISTA" || usuario.rol == "ADMINISTRADOR"
@@ -69,7 +69,7 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
                         "No tienes acceso a este siniestro"
                     }
                     esLiquidador -> check(siniestro.idLiquidador == usuario.idUsuario) {
-                        "Este siniestro no está asignado a ti"
+                        "Este siniestro no estÃ¡ asignado a ti"
                     }
                 }
 
@@ -82,7 +82,6 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
                 }.collectLatest { (evidencias, solicitudes, casoActual) ->
                     check(casoActual != null) { "Siniestro no encontrado" }
 
-                    // Analista, Admin y Liquidador ven las evidencias en modo lectura (sin borradores privados)
                     val evidenciasVisibles = if (esAsegurado) {
                         evidencias
                     } else {
@@ -216,8 +215,8 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private suspend fun validarPropietario(idSiniestro: Int, requiereAbierto: Boolean): com.andes.bpo.utils.SesionActiva {
-        val usuario = SesionUsuario.obtenerSesion() ?: error("Debes iniciar sesión")
-        check(usuario.rol.startsWith("ASEGURADO")) { "No tienes permiso para esta acción" }
+        val usuario = SesionUsuario.obtenerSesion() ?: error("Debes iniciar sesiÃ³n")
+        check(usuario.rol.startsWith("ASEGURADO")) { "No tienes permiso para esta acciÃ³n" }
         val siniestro = dao.getSiniestroPorId(idSiniestro).first()
             ?: error("Siniestro no encontrado")
         check(siniestro.idAsegurado == usuario.idUsuario) { "El siniestro no te pertenece" }
@@ -251,7 +250,7 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
             "image/png" -> "png"
             "image/webp" -> "webp"
             "image/heic", "image/heif" -> "heic"
-            else -> if (mime.startsWith("image/")) "img" else error("Solo se permiten imágenes y PDF")
+            else -> if (mime.startsWith("image/")) "img" else error("Solo se permiten imÃ¡genes y PDF")
         }
         val carpeta = File(app.filesDir, "evidencias")
         check(carpeta.exists() || carpeta.mkdirs()) { "No se pudo preparar el almacenamiento" }
@@ -267,11 +266,11 @@ class EvidenciaViewModel(application: Application) : AndroidViewModel(applicatio
                         if (leidos == -1) break
                         total += leidos
                         check(total <= 5L * 1024L * 1024L) {
-                            "El archivo supera el límite de 5 MB"
+                            "El archivo supera el lÃ­mite de 5 MB"
                         }
                         output.write(buffer, 0, leidos)
                     }
-                    check(total > 0) { "El archivo está vacío" }
+                    check(total > 0) { "El archivo estÃ¡ vacÃ­o" }
                 }
             }
             return archivo

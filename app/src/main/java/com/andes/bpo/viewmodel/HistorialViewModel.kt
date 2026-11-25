@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -58,7 +58,7 @@ class HistorialViewModel(
                 if (usuario == null) {
                     _uiState.value = HistorialUiState(
                         cargando = false,
-                        error = "Debes iniciar sesión"
+                        error = "Debes iniciar sesiÃ³n"
                     )
                     return@launch
                 }

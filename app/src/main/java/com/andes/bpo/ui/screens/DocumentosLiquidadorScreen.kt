@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -94,7 +94,7 @@ fun DocumentosLiquidadorScreen(
                     }
                 }
                 if (estado.documentos.isEmpty()) {
-                    item { Text("Aún no hay documentos solicitados ni entregados.") }
+                    item { Text("AÃºn no hay documentos solicitados ni entregados.") }
                 } else {
                     items(estado.documentos, key = { it.idDocumento }) { documento ->
                         DocumentoLiquidadorCard(

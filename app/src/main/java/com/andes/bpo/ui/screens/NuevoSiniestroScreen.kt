@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -77,6 +78,8 @@ fun NuevoSiniestroScreen(
 
     var menuAreasExpandido by remember { mutableStateOf(false) }
     var menuTipoExpandido by remember { mutableStateOf(false) }
+    var menuRegionExpandido by remember { mutableStateOf(false) }
+    var menuComunaExpandido by remember { mutableStateOf(false) }
     var menuPolizasExpandido by remember { mutableStateOf(false) }
     var menuCompaniaExpandido by remember { mutableStateOf(false) }
 
@@ -88,8 +91,8 @@ fun NuevoSiniestroScreen(
     val areaActual = areas.firstOrNull { it.idArea == uiState.idArea }
     val listaPolizasArea = remember(areaActual) { viewModel.obtenerPolizasPorArea(areaActual) }
     val listaTiposProblema = remember(uiState.idArea) { viewModel.obtenerTiposProblemaPorArea(uiState.idArea) }
+    val listaComunasRegion = remember(uiState.region) { viewModel.obtenerComunasPorRegion(uiState.region) }
 
-    // Launchers de archivos, galería y cámara
     val launcherCamara = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
@@ -120,14 +123,13 @@ fun NuevoSiniestroScreen(
         }
     }
 
-    // Launchers de permisos en tiempo de ejecución
     val permisoCamaraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { concedido ->
         if (concedido) {
             launcherCamara.launch(null)
         } else {
-            Toast.makeText(context, "Se requiere permiso de Cámara para tomar fotografías", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Se requiere permiso de CÃ¡mara para tomar fotografÃ­as", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -137,7 +139,7 @@ fun NuevoSiniestroScreen(
         if (concedido) {
             launcherGaleria.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         } else {
-            Toast.makeText(context, "Se requiere permiso de Galería para seleccionar fotos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Se requiere permiso de GalerÃ­a para seleccionar fotos", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -163,7 +165,6 @@ fun NuevoSiniestroScreen(
         }
     }
 
-    // Diálogo selector de origen (Cámara / Galería / Carpetas)
     solicitudAdjunto?.let { destino ->
         AlertDialog(
             onDismissRequest = { solicitudAdjunto = null },
@@ -176,7 +177,7 @@ fun NuevoSiniestroScreen(
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Tomar Foto con Cámara")
+                        Text("Tomar Foto con CÃ¡mara")
                     }
                     OutlinedButton(
                         onClick = { abrirGaleriaConPermiso() },
@@ -184,7 +185,7 @@ fun NuevoSiniestroScreen(
                     ) {
                         Icon(Icons.Default.PhotoLibrary, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Elegir Foto de Galería")
+                        Text("Elegir Foto de GalerÃ­a")
                     }
                     OutlinedButton(
                         onClick = {
@@ -207,7 +208,6 @@ fun NuevoSiniestroScreen(
         )
     }
 
-    // Selector de fecha Material 3 (DatePickerDialog)
     if (mostrarDatePicker) {
         val datePickerState = rememberDatePickerState(
             selectableDates = object : SelectableDates {
@@ -237,12 +237,11 @@ fun NuevoSiniestroScreen(
         }
     }
 
-    // Confirmación para eliminar archivo adjunto
     adjuntoAEliminar?.let { item ->
         AlertDialog(
             onDismissRequest = { adjuntoAEliminar = null },
             title = { Text("Eliminar archivo adjunto") },
-            text = { Text("¿Deseas eliminar '${item.nombreArchivo}' de este siniestro?") },
+            text = { Text("Â¿Deseas eliminar '${item.nombreArchivo}' de este siniestro?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.eliminarAdjunto(item)
@@ -257,7 +256,6 @@ fun NuevoSiniestroScreen(
         )
     }
 
-    // Visor de foto en pantalla completa
     fotoPantallaCompleta?.let { foto ->
         Dialog(
             onDismissRequest = { fotoPantallaCompleta = null },
@@ -317,10 +315,8 @@ fun NuevoSiniestroScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // SECCIÓN 1: DATOS DEL SINIESTRO
             Text("1. Antecedentes del Siniestro", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colorAndes)
 
-            // Área desde BD
             ExposedDropdownMenuBox(
                 expanded = menuAreasExpandido,
                 onExpandedChange = { menuAreasExpandido = it && areas.isNotEmpty() }
@@ -329,8 +325,8 @@ fun NuevoSiniestroScreen(
                     value = areaActual?.nombre ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Área del Siniestro *") },
-                    placeholder = { Text("Vehículos, Hogar o Salud") },
+                    label = { Text("Ãrea del Siniestro *") },
+                    placeholder = { Text("VehÃ­culos, Hogar o Salud") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuAreasExpandido) },
                     isError = uiState.errArea != null,
                     supportingText = { uiState.errArea?.let { Text(it) } },
@@ -352,7 +348,6 @@ fun NuevoSiniestroScreen(
                 }
             }
 
-            // Tipo de Siniestro / Problema (Lista desplegable)
             ExposedDropdownMenuBox(
                 expanded = menuTipoExpandido,
                 onExpandedChange = { menuTipoExpandido = it && listaTiposProblema.isNotEmpty() }
@@ -363,7 +358,7 @@ fun NuevoSiniestroScreen(
                     readOnly = true,
                     enabled = uiState.idArea != null,
                     label = { Text("Tipo de Siniestro / Problema *") },
-                    placeholder = { Text(if (uiState.idArea == null) "Primero selecciona un área" else "Selecciona el tipo de problema") },
+                    placeholder = { Text(if (uiState.idArea == null) "Primero selecciona un Ã¡rea" else "Selecciona el tipo de problema") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuTipoExpandido) },
                     isError = uiState.errTipo != null,
                     supportingText = { uiState.errTipo?.let { Text(it) } },
@@ -385,7 +380,6 @@ fun NuevoSiniestroScreen(
                 }
             }
 
-            // Fecha con Calendario Material 3 (detecta toque en todo el campo)
             val fechaInteractionSource = remember { MutableInteractionSource() }
             LaunchedEffect(fechaInteractionSource) {
                 fechaInteractionSource.interactions.collect { interaction ->
@@ -412,37 +406,118 @@ fun NuevoSiniestroScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
-                value = uiState.comuna,
-                onValueChange = { viewModel.onComunaChange(it) },
-                label = { Text("Comuna *") },
-                isError = uiState.errComuna != null,
-                supportingText = { uiState.errComuna?.let { Text(it) } },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            ExposedDropdownMenuBox(
+                expanded = menuRegionExpandido,
+                onExpandedChange = { menuRegionExpandido = it }
+            ) {
+                OutlinedTextField(
+                    value = uiState.region,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("RegiÃ³n del Siniestro *") },
+                    placeholder = { Text("Selecciona la regiÃ³n") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuRegionExpandido) },
+                    isError = uiState.errRegion != null,
+                    supportingText = { uiState.errRegion?.let { Text(it) } },
+                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = menuRegionExpandido,
+                    onDismissRequest = { menuRegionExpandido = false }
+                ) {
+                    viewModel.regionesDisponibles.forEach { regionItem ->
+                        DropdownMenuItem(
+                            text = { Text(regionItem) },
+                            onClick = {
+                                viewModel.onRegionSelected(regionItem)
+                                menuRegionExpandido = false
+                            }
+                        )
+                    }
+                }
+            }
 
-            OutlinedTextField(
-                value = uiState.detalleBien,
-                onValueChange = { viewModel.onDetalleBienChange(it) },
-                label = {
-                    Text(
-                        when (uiState.idArea) {
-                            1 -> "Patente y Modelo del Vehículo"
-                            2 -> "Dirección del Inmueble"
-                            3 -> "Nombre del Paciente / Beneficiario"
-                            else -> "Bien o Persona Asegurada"
-                        }
+            ExposedDropdownMenuBox(
+                expanded = menuComunaExpandido,
+                onExpandedChange = { menuComunaExpandido = it && listaComunasRegion.isNotEmpty() }
+            ) {
+                OutlinedTextField(
+                    value = uiState.comuna,
+                    onValueChange = {},
+                    readOnly = true,
+                    enabled = uiState.region.isNotBlank(),
+                    label = { Text("Comuna del Siniestro *") },
+                    placeholder = { Text(if (uiState.region.isBlank()) "Primero selecciona una regiÃ³n" else "Selecciona la comuna") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuComunaExpandido) },
+                    isError = uiState.errComuna != null,
+                    supportingText = { uiState.errComuna?.let { Text(it) } },
+                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = menuComunaExpandido,
+                    onDismissRequest = { menuComunaExpandido = false }
+                ) {
+                    listaComunasRegion.forEach { comunaItem ->
+                        DropdownMenuItem(
+                            text = { Text(comunaItem) },
+                            onClick = {
+                                viewModel.onComunaSelected(comunaItem)
+                                menuComunaExpandido = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (uiState.idArea == 1) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    OutlinedTextField(
+                        value = uiState.patente,
+                        onValueChange = { viewModel.onPatenteChange(it) },
+                        label = { Text("Patente") },
+                        placeholder = { Text("ABCD12") },
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Characters
+                        ),
+                        modifier = Modifier.weight(0.38f),
+                        singleLine = true
                     )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+
+                    OutlinedTextField(
+                        value = uiState.modeloVehiculo,
+                        onValueChange = { viewModel.onModeloVehiculoChange(it) },
+                        label = { Text("Modelo del VehÃ­culo") },
+                        placeholder = { Text("Ej: Toyota Yaris") },
+                        modifier = Modifier.weight(0.62f),
+                        singleLine = true
+                    )
+                }
+            } else {
+                OutlinedTextField(
+                    value = uiState.detalleBien,
+                    onValueChange = { viewModel.onDetalleBienChange(it) },
+                    label = {
+                        Text(
+                            when (uiState.idArea) {
+                                2 -> "DirecciÃ³n del Inmueble"
+                                3 -> "Nombre del Paciente / Beneficiario"
+                                else -> "Bien o Persona Asegurada"
+                            }
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
 
             OutlinedTextField(
                 value = uiState.descripcion,
                 onValueChange = { viewModel.onDescripcionChange(it) },
-                label = { Text("Descripción de los hechos *") },
+                label = { Text("DescripciÃ³n de los hechos *") },
                 isError = uiState.errDescripcion != null,
                 supportingText = { uiState.errDescripcion?.let { Text(it) } },
                 modifier = Modifier.fillMaxWidth(),
@@ -451,8 +526,7 @@ fun NuevoSiniestroScreen(
 
             HorizontalDivider()
 
-            // SECCIÓN 2: PÓLIZA Y DOCUMENTO DE RESPALDO
-            Text("2. Póliza de Respaldo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colorAndes)
+            Text("2. PÃ³liza de Respaldo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colorAndes)
 
             ExposedDropdownMenuBox(
                 expanded = menuPolizasExpandido,
@@ -463,8 +537,8 @@ fun NuevoSiniestroScreen(
                     onValueChange = {},
                     readOnly = true,
                     enabled = uiState.idArea != null,
-                    label = { Text("Tipo de Póliza *") },
-                    placeholder = { Text(if (uiState.idArea == null) "Primero selecciona un área" else "Selecciona la póliza contratada") },
+                    label = { Text("Tipo de PÃ³liza *") },
+                    placeholder = { Text(if (uiState.idArea == null) "Primero selecciona un Ã¡rea" else "Selecciona la pÃ³liza contratada") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuPolizasExpandido) },
                     isError = uiState.errPoliza != null,
                     supportingText = { uiState.errPoliza?.let { Text(it) } },
@@ -489,7 +563,7 @@ fun NuevoSiniestroScreen(
             OutlinedTextField(
                 value = uiState.numeroPoliza,
                 onValueChange = { viewModel.onNumeroPolizaChange(it) },
-                label = { Text("Número de Póliza *") },
+                label = { Text("NÃºmero de PÃ³liza *") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 isError = uiState.errNumPoliza != null,
                 supportingText = { uiState.errNumPoliza?.let { Text(it) } },
@@ -504,7 +578,7 @@ fun NuevoSiniestroScreen(
                 OutlinedTextField(
                     value = uiState.compania,
                     onValueChange = { viewModel.onCompaniaChange(it) },
-                    label = { Text("Compañía Aseguradora *") },
+                    label = { Text("CompaÃ±Ã­a Aseguradora *") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuCompaniaExpandido) },
                     isError = uiState.errCompania != null,
                     supportingText = { uiState.errCompania?.let { Text(it) } },
@@ -527,10 +601,9 @@ fun NuevoSiniestroScreen(
                 }
             }
 
-            // Botón para adjuntar documento de Póliza (PDF o Foto)
             OutlinedButton(
                 onClick = {
-                    solicitudAdjunto = SolicitudAdjuntoActivo("Póliza de Seguro", esPoliza = true)
+                    solicitudAdjunto = SolicitudAdjuntoActivo("PÃ³liza de Seguro", esPoliza = true)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(
@@ -540,7 +613,7 @@ fun NuevoSiniestroScreen(
             ) {
                 Icon(Icons.Default.AttachFile, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text(if (polizaAdjunta == null) "Adjuntar Documento de Póliza (PDF o Foto) *" else "Cambiar Documento de Póliza")
+                Text(if (polizaAdjunta == null) "Adjuntar Documento de PÃ³liza (PDF o Foto) *" else "Cambiar Documento de PÃ³liza")
             }
 
             uiState.errPolizaDoc?.let {
@@ -557,12 +630,11 @@ fun NuevoSiniestroScreen(
 
             HorizontalDivider()
 
-            // SECCIÓN 3: CHECKLIST DOCUMENTAL DINÁMICO SEGÚN ÁREA
             Text("3. Documentos del Siniestro", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colorAndes)
 
             if (requisitos.isEmpty()) {
                 Text(
-                    "Selecciona un área para cargar los documentos requeridos.",
+                    "Selecciona un Ã¡rea para cargar los documentos requeridos.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -625,7 +697,7 @@ fun NuevoSiniestroScreen(
                 onClick = {
                     viewModel.guardarSiniestroCompleto(
                         onExito = {
-                            Toast.makeText(context, "Siniestro ingresado con éxito", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Siniestro ingresado con Ã©xito", Toast.LENGTH_LONG).show()
                             navController.popBackStack()
                         },
                         onError = { msg ->

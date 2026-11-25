@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -60,7 +60,7 @@ fun NotificacionesScreen(navController: NavController, rut: String = "") {
         AlertDialog(
             onDismissRequest = { avisoSeleccionado = null },
             containerColor = Color.White,
-            title = { Text("Detalle de Notificación", fontWeight = FontWeight.Bold, color = PrimaryAndes) },
+            title = { Text("Detalle de NotificaciÃ³n", fontWeight = FontWeight.Bold, color = PrimaryAndes) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(aviso.fechaHora, fontSize = 12.sp, color = Color.Gray)
@@ -127,7 +127,7 @@ fun NotificacionesScreen(navController: NavController, rut: String = "") {
                                 }
                             }
                         }) {
-                            Icon(Icons.Default.DoneAll, contentDescription = "Marcar todas como leídas", tint = PrimaryAndes)
+                            Icon(Icons.Default.DoneAll, contentDescription = "Marcar todas como leÃ­das", tint = PrimaryAndes)
                         }
                     }
                 },
@@ -154,7 +154,7 @@ fun NotificacionesScreen(navController: NavController, rut: String = "") {
                 FilterChip(
                     selected = soloNoLeidas,
                     onClick = { soloNoLeidas = true },
-                    label = { Text("No leídas ($noLeidosCount)") }
+                    label = { Text("No leÃ­das ($noLeidosCount)") }
                 )
             }
 

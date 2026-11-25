@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.components
+﻿package com.andes.bpo.ui.components
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,8 +15,8 @@ import com.andes.bpo.ui.theme.*
 fun StatusBadge(status: Int) {
     val (bgColor, textColor, label) = when (status) {
         0 -> Triple(StatusRecibidoBg, StatusRecibidoText, "Recibido")
-        1 -> Triple(StatusEvaluacionBg, StatusEvaluacionText, "En evaluación")
-        2 -> Triple(StatusLiquidacionBg, StatusLiquidacionText, "En liquidación")
+        1 -> Triple(StatusEvaluacionBg, StatusEvaluacionText, "En evaluaciÃ³n")
+        2 -> Triple(StatusLiquidacionBg, StatusLiquidacionText, "En liquidaciÃ³n")
         3 -> Triple(StatusCerradoBg, StatusCerradoText, "Cerrado")
         else -> Triple(StatusCerradoBg, StatusCerradoText, "En progreso")
     }

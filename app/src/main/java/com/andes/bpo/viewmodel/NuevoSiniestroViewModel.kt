@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import android.content.Intent
@@ -41,19 +41,22 @@ data class NuevoSiniestroUiState(
     val numeroPoliza: String = "",
     val compania: String = "",
     val tipoSiniestro: String = "",
+    val patente: String = "",
+    val modeloVehiculo: String = "",
     val detalleBien: String = "",
     val fechaOcurrencia: String = "",
+    val region: String = "",
     val comuna: String = "",
     val descripcion: String = "",
     val adjuntos: List<AdjuntoBorradorItem> = emptyList(),
     val isSaving: Boolean = false,
-    // Errores individuales por campo (isError + supportingText)
     val errArea: String? = null,
     val errPoliza: String? = null,
     val errNumPoliza: String? = null,
     val errCompania: String? = null,
     val errTipo: String? = null,
     val errFecha: String? = null,
+    val errRegion: String? = null,
     val errComuna: String? = null,
     val errDescripcion: String? = null,
     val errPolizaDoc: String? = null,
@@ -90,6 +93,27 @@ class NuevoSiniestroViewModel(
         "MetLife Chile"
     )
 
+    val comunasPorRegion: Map<String, List<String>> = linkedMapOf(
+        "Arica y Parinacota" to listOf("Arica", "Camarones", "Putre", "General Lagos"),
+        "TarapacÃ¡" to listOf("Iquique", "Alto Hospicio", "Pozo Almonte", "CamiÃ±a", "Colchane", "Huara", "Pica"),
+        "Antofagasta" to listOf("Antofagasta", "Mejillones", "Sierra Gorda", "Taltal", "Calama", "OllagÃ¼e", "San Pedro de Atacama", "Tocopilla", "MarÃ­a Elena"),
+        "Atacama" to listOf("CopiapÃ³", "Caldera", "Tierra Amarilla", "ChaÃ±aral", "Diego de Almagro", "Vallenar", "Alto del Carmen", "Freirina", "Huasco"),
+        "Coquimbo" to listOf("La Serena", "Coquimbo", "Andacollo", "La Higuera", "Paiguano", "VicuÃ±a", "Illapel", "Canela", "Los Vilos", "Salamanca", "Ovalle", "CombarbalÃ¡", "Monte Patria", "Punitaqui", "RÃ­o Hurtado"),
+        "ValparaÃ­so" to listOf("ValparaÃ­so", "ViÃ±a del Mar", "ConcÃ³n", "QuilpuÃ©", "Villa Alemana", "Casablanca", "Quillota", "La Calera", "La Cruz", "Limache", "OlmuÃ©", "San Antonio", "Cartagena", "El Quisco", "El Tabo", "Algarrobo", "San Felipe", "Los Andes", "La Ligua", "Petorca", "Zapallar"),
+        "Metropolitana de Santiago" to listOf("Santiago", "Cerrillos", "Cerro Navia", "ConchalÃ­", "El Bosque", "EstaciÃ³n Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "MaipÃº", "Ã‘uÃ±oa", "Pedro Aguirre Cerda", "PeÃ±alolÃ©n", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San JoaquÃ­n", "San Miguel", "San RamÃ³n", "Vitacura", "Puente Alto", "Pirque", "San JosÃ© de Maipo", "Colina", "Lampa", "Tiltil", "San Bernardo", "Buin", "Paine", "Calera de Tango", "Melipilla", "Talagante", "PeÃ±aflor", "Padre Hurtado", "El Monte", "Isla de Maipo"),
+        "Libertador General Bernardo O'Higgins" to listOf("Rancagua", "MachalÃ­", "Graneros", "Mostazal", "Codegua", "RequÃ­noa", "Rengo", "San Vicente", "Pichidegua", "Peumo", "San Fernando", "Chimbarongo", "Santa Cruz", "Pichilemu"),
+        "Maule" to listOf("Talca", "ConstituciÃ³n", "Curepto", "Empedrado", "Maule", "Pelarco", "Pencahue", "RÃ­o Claro", "San Clemente", "San Rafael", "CuricÃ³", "Molina", "Teno", "Romeral", "Linares", "San Javier", "Parral", "Cauquenes"),
+        "Ã‘uble" to listOf("ChillÃ¡n", "ChillÃ¡n Viejo", "Bulnes", "QuillÃ³n", "San Carlos", "Coihueco", "Yungay", "El Carmen", "Pinto", "Coelemu", "Quirihue"),
+        "BiobÃ­o" to listOf("ConcepciÃ³n", "Talcahuano", "HualpÃ©n", "San Pedro de la Paz", "Chiguayante", "Coronel", "Lota", "Penco", "TomÃ©", "Hualqui", "Santa Juana", "Los Ãngeles", "Cabrero", "MulchÃ©n", "Nacimiento", "Laja", "CaÃ±ete", "Lebu", "Arauco"),
+        "La AraucanÃ­a" to listOf("Temuco", "Padre Las Casas", "VilcÃºn", "Lautaro", "Perquenco", "Nueva Imperial", "Carahue", "PitrufquÃ©n", "Freire", "Gorbea", "Loncoche", "Villarrica", "PucÃ³n", "Angol", "Collipulli", "Victoria", "TraiguÃ©n", "CuracautÃ­n"),
+        "Los RÃ­os" to listOf("Valdivia", "Corral", "Lanco", "Los Lagos", "MÃ¡fil", "Mariquina", "Paillaco", "Panguipulli", "La UniÃ³n", "Futrono", "Lago Ranco", "RÃ­o Bueno"),
+        "Los Lagos" to listOf("Puerto Montt", "Puerto Varas", "Llanquihue", "Frutillar", "Fresia", "Los Muermos", "Calbuco", "MaullÃ­n", "Osorno", "Purranque", "Puyehue", "RÃ­o Negro", "Castro", "Ancud", "QuellÃ³n", "Dalcahue", "Chonchi"),
+        "AysÃ©n del General Carlos IbÃ¡Ã±ez del Campo" to listOf("Coyhaique", "Lago Verde", "AysÃ©n", "Cisnes", "Guaitecas", "Cochrane", "O'Higgins", "Tortel", "Chile Chico", "RÃ­o IbÃ¡Ã±ez"),
+        "Magallanes y de la AntÃ¡rtica Chilena" to listOf("Punta Arenas", "Laguna Blanca", "RÃ­o Verde", "San Gregorio", "Porvenir", "Primavera", "Timaukel", "Natales", "Torres del Paine")
+    )
+
+    val regionesDisponibles: List<String> = comunasPorRegion.keys.toList()
+
     init {
         viewModelScope.launch {
             areaDao.asegurarAreasIniciales()
@@ -99,25 +123,28 @@ class NuevoSiniestroViewModel(
         }
     }
 
+    fun obtenerComunasPorRegion(region: String): List<String> =
+        comunasPorRegion[region].orEmpty()
+
     fun obtenerTiposProblemaPorArea(idArea: Int?): List<String> = when (idArea) {
         1 -> listOf(
-            "Colisión o Choque",
-            "Robo Total o Parcial de Vehículo",
+            "ColisiÃ³n o Choque",
+            "Robo Total o Parcial de VehÃ­culo",
             "Volcamiento o Desbarrancamiento",
-            "Daños a Terceros (Responsabilidad Civil)",
-            "Daños Materiales / Actos Maliciosos"
+            "DaÃ±os a Terceros (Responsabilidad Civil)",
+            "DaÃ±os Materiales / Actos Maliciosos"
         )
         2 -> listOf(
             "Incendio Estructural o Contenido",
-            "Sismo / Daños por Terremoto",
+            "Sismo / DaÃ±os por Terremoto",
             "Robo con Fuerza en Vivienda",
-            "Rotura de Cañerías / Filtración de Agua",
-            "Daños Eléctricos / Cristales"
+            "Rotura de CaÃ±erÃ­as / FiltraciÃ³n de Agua",
+            "DaÃ±os ElÃ©ctricos / Cristales"
         )
         3 -> listOf(
-            "Reembolso Atención Ambulatoria",
-            "Hospitalización o Intervención Quirúrgica",
-            "Atención de Urgencia Médica",
+            "Reembolso AtenciÃ³n Ambulatoria",
+            "HospitalizaciÃ³n o IntervenciÃ³n QuirÃºrgica",
+            "AtenciÃ³n de Urgencia MÃ©dica",
             "Incapacidad / Accidente Personal",
             "Fallecimiento (Seguro de Vida)"
         )
@@ -133,9 +160,9 @@ class NuevoSiniestroViewModel(
         if (desdeBd.isNotEmpty()) return desdeBd
 
         return when (area?.idArea) {
-            1 -> listOf("Póliza Automotriz Cobertura Total", "Póliza Pérdida Total y Robo", "Póliza Responsabilidad Civil", "SOAP")
-            2 -> listOf("Póliza Incendio y Sismo", "Póliza Hogar Protegido Integral", "Póliza Robo y Contenido")
-            3 -> listOf("Póliza Salud Complementaria", "Póliza Catastrófica (CAEC)", "Póliza Vida y Accidentes")
+            1 -> listOf("PÃ³liza Automotriz Cobertura Total", "PÃ³liza PÃ©rdida Total y Robo", "PÃ³liza Responsabilidad Civil", "SOAP")
+            2 -> listOf("PÃ³liza Incendio y Sismo", "PÃ³liza Hogar Protegido Integral", "PÃ³liza Robo y Contenido")
+            3 -> listOf("PÃ³liza Salud Complementaria", "PÃ³liza CatastrÃ³fica (CAEC)", "PÃ³liza Vida y Accidentes")
             else -> emptyList()
         }
     }
@@ -172,6 +199,15 @@ class NuevoSiniestroViewModel(
         _uiState.update { it.copy(tipoSiniestro = tipo, errTipo = null) }
     }
 
+    fun onPatenteChange(valor: String) {
+        val limpia = valor.replace(Regex("[^A-Za-z0-9]"), "").uppercase(Locale.ROOT).take(6)
+        _uiState.update { it.copy(patente = limpia) }
+    }
+
+    fun onModeloVehiculoChange(valor: String) {
+        _uiState.update { it.copy(modeloVehiculo = valor) }
+    }
+
     fun onDetalleBienChange(valor: String) {
         _uiState.update { it.copy(detalleBien = valor) }
     }
@@ -180,8 +216,19 @@ class NuevoSiniestroViewModel(
         _uiState.update { it.copy(fechaOcurrencia = fecha, errFecha = null) }
     }
 
-    fun onComunaChange(valor: String) {
-        _uiState.update { it.copy(comuna = valor, errComuna = null) }
+    fun onRegionSelected(region: String) {
+        _uiState.update {
+            it.copy(
+                region = region,
+                comuna = "",
+                errRegion = null,
+                errComuna = null
+            )
+        }
+    }
+
+    fun onComunaSelected(comuna: String) {
+        _uiState.update { it.copy(comuna = comuna, errComuna = null) }
     }
 
     fun onDescripcionChange(valor: String) {
@@ -226,7 +273,6 @@ class NuevoSiniestroViewModel(
             val app = getApplication<Application>()
             val resolver = app.contentResolver
 
-            // Solicitar permiso persistente de lectura sobre la URI si el proveedor lo soporta
             runCatching {
                 resolver.takePersistableUriPermission(
                     uri,
@@ -241,7 +287,7 @@ class NuevoSiniestroViewModel(
                 "image/jpeg" -> "jpg"
                 "image/png" -> "png"
                 "image/webp" -> "webp"
-                else -> if (esImg) "jpg" else error("Solo se permiten imágenes (JPG/PNG) o documentos PDF")
+                else -> if (esImg) "jpg" else error("Solo se permiten imÃ¡genes (JPG/PNG) o documentos PDF")
             }
 
             var nombreOriginal: String? = null
@@ -261,10 +307,10 @@ class NuevoSiniestroViewModel(
                         val leidos = input.read(buffer)
                         if (leidos == -1) break
                         total += leidos
-                        check(total <= 10L * 1024L * 1024L) { "El archivo supera el máximo permitido de 10 MB" }
+                        check(total <= 10L * 1024L * 1024L) { "El archivo supera el mÃ¡ximo permitido de 10 MB" }
                         output.write(buffer, 0, leidos)
                     }
-                    check(total > 0) { "El archivo seleccionado está vacío" }
+                    check(total > 0) { "El archivo seleccionado estÃ¡ vacÃ­o" }
                 }
             } ?: error("No se pudo leer el archivo seleccionado")
 
@@ -298,7 +344,7 @@ class NuevoSiniestroViewModel(
 
             FileOutputStream(destino).use { output ->
                 check(bitmap.compress(Bitmap.CompressFormat.JPEG, 88, output)) {
-                    "No se pudo guardar la fotografía capturada"
+                    "No se pudo guardar la fotografÃ­a capturada"
                 }
             }
 
@@ -350,17 +396,18 @@ class NuevoSiniestroViewModel(
         val state = _uiState.value
         val reqs = _requisitos.value
 
-        val errArea = if (state.idArea == null) "Selecciona el área del siniestro" else null
+        val errArea = if (state.idArea == null) "Selecciona el Ã¡rea del siniestro" else null
         val errTipo = if (state.tipoSiniestro.isBlank()) "Selecciona el tipo de problema o evento" else null
-        val errPoliza = if (state.polizaSeleccionada.isBlank()) "Selecciona el tipo de póliza" else null
-        val errNumPoliza = if (state.numeroPoliza.length < 4) "Ingresa al menos 4 dígitos de póliza" else null
-        val errCompania = if (state.compania.isBlank()) "Selecciona o ingresa la compañía aseguradora" else null
-        val errFecha = if (!esFechaOcurrenciaValida(state.fechaOcurrencia)) "Selecciona una fecha válida no futura" else null
-        val errComuna = if (state.comuna.trim().length < 3) "Ingresa la comuna de ocurrencia" else null
-        val errDescripcion = if (state.descripcion.trim().length < 10) "Describe lo ocurrido (mínimo 10 caracteres)" else null
+        val errPoliza = if (state.polizaSeleccionada.isBlank()) "Selecciona el tipo de pÃ³liza" else null
+        val errNumPoliza = if (state.numeroPoliza.length < 4) "Ingresa al menos 4 dÃ­gitos de pÃ³liza" else null
+        val errCompania = if (state.compania.isBlank()) "Selecciona o ingresa la compaÃ±Ã­a aseguradora" else null
+        val errFecha = if (!esFechaOcurrenciaValida(state.fechaOcurrencia)) "Selecciona una fecha vÃ¡lida no futura" else null
+        val errRegion = if (state.region.isBlank()) "Selecciona la regiÃ³n del siniestro" else null
+        val errComuna = if (state.comuna.isBlank()) "Selecciona la comuna de ocurrencia" else null
+        val errDescripcion = if (state.descripcion.trim().length < 10) "Describe lo ocurrido (mÃ­nimo 10 caracteres)" else null
 
         val tienePolizaAdjunta = state.adjuntos.any { it.esPoliza }
-        val errPolizaDoc = if (!tienePolizaAdjunta) "Adjunta el respaldo de tu póliza (PDF o foto)" else null
+        val errPolizaDoc = if (!tienePolizaAdjunta) "Adjunta el respaldo de tu pÃ³liza (PDF o foto)" else null
 
         val obligatoriosFaltantes = reqs.filter { it.esObligatorio }
             .filter { req -> state.adjuntos.none { !it.esPoliza && it.tipoDocumento == req.nombreDocumento } }
@@ -377,6 +424,7 @@ class NuevoSiniestroViewModel(
                 errNumPoliza = errNumPoliza,
                 errCompania = errCompania,
                 errFecha = errFecha,
+                errRegion = errRegion,
                 errComuna = errComuna,
                 errDescripcion = errDescripcion,
                 errPolizaDoc = errPolizaDoc,
@@ -391,6 +439,7 @@ class NuevoSiniestroViewModel(
             errNumPoliza,
             errCompania,
             errFecha,
+            errRegion,
             errComuna,
             errDescripcion,
             errPolizaDoc,
@@ -408,7 +457,7 @@ class NuevoSiniestroViewModel(
         val state = _uiState.value
         val usuario = SesionUsuario.obtenerSesion()
         if (usuario == null) {
-            onError("No hay una sesión activa. Inicia sesión nuevamente.")
+            onError("No hay una sesiÃ³n activa. Inicia sesiÃ³n nuevamente.")
             return
         }
 
@@ -421,9 +470,17 @@ class NuevoSiniestroViewModel(
                 val fechaAhora = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
 
                 val prefijoArea = when (state.idArea) {
-                    1 -> "Vehículo - "
+                    1 -> "VehÃ­culo - "
                     2 -> "Hogar - "
                     else -> "Salud - "
+                }
+
+                val bienAsegurado = if (state.idArea == 1) {
+                    listOf(state.patente.trim(), state.modeloVehiculo.trim())
+                        .filter { it.isNotBlank() }
+                        .joinToString(" - ")
+                } else {
+                    state.detalleBien.trim()
                 }
 
                 val nuevoSiniestro = SiniestroEntity(
@@ -432,14 +489,14 @@ class NuevoSiniestroViewModel(
                     companiaNombre = state.compania.trim(),
                     numeroPoliza = "${state.polizaSeleccionada} #${state.numeroPoliza}",
                     tipoSiniestroNombre = "$prefijoArea${state.tipoSiniestro.trim()}",
-                    modeloVehiculo = state.detalleBien.trim(),
+                    modeloVehiculo = bienAsegurado,
                     fechaOcurrencia = state.fechaOcurrencia,
                     fechaReporte = fechaAhora,
                     comunaNombre = state.comuna.trim(),
                     descripcion = state.descripcion.trim(),
                     etapaNombre = "Recibido",
                     liquidadorNombre = "Por asignar",
-                    proximoPasoTexto = "Revisión inicial de antecedentes (Plazo legal 45 días)",
+                    proximoPasoTexto = "RevisiÃ³n inicial de antecedentes (Plazo legal 45 dÃ­as)",
                     idArea = state.idArea,
                     fechaLimiteLegal = fechaLimiteLegal
                 )
@@ -452,7 +509,7 @@ class NuevoSiniestroViewModel(
                             DocumentoEntity(
                                 idSiniestro = idGenerado,
                                 nombreTipoDocumento = adj.tipoDocumento,
-                                comentario = if (adj.esPoliza) "Documento de póliza respaldada" else "Adjuntado al reportar siniestro",
+                                comentario = if (adj.esPoliza) "Documento de pÃ³liza respaldada" else "Adjuntado al reportar siniestro",
                                 fechaSolicitud = fechaAhora,
                                 estado = "Entregado",
                                 nombreArchivo = adj.nombreArchivo,
@@ -467,7 +524,7 @@ class NuevoSiniestroViewModel(
                         AvisoEntity(
                             idSiniestro = idGenerado,
                             idUsuario = usuario.idUsuario,
-                            mensaje = "Siniestro ${nuevoSiniestro.numero} ingresado. Plazo legal de respuesta: $fechaLimiteLegal (45 días, D.S. N° 1.055).",
+                            mensaje = "Siniestro ${nuevoSiniestro.numero} ingresado. Plazo legal de respuesta: $fechaLimiteLegal (45 dÃ­as, D.S. NÂ° 1.055).",
                             fechaHora = fechaAhora,
                             leido = false,
                             requiereAccion = false,
@@ -480,7 +537,7 @@ class NuevoSiniestroViewModel(
                 onExito()
             } catch (e: Exception) {
                 _uiState.update { it.copy(isSaving = false) }
-                onError(e.message ?: "No se pudo guardar el siniestro. Inténtalo nuevamente.")
+                onError(e.message ?: "No se pudo guardar el siniestro. IntÃ©ntalo nuevamente.")
             }
         }
     }

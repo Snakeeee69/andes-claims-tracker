@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -43,7 +43,7 @@ import java.time.temporal.ChronoUnit
 
 private val MOTIVOS_RECHAZO = listOf(
     "Sobrecarga operativa",
-    "Conflicto de interés",
+    "Conflicto de interÃ©s",
     "Falta de especialidad en el ramo",
     "Otro"
 )
@@ -93,10 +93,10 @@ fun BandejaLiquidadorScreen(
     }
 
     val pendientesAceptacion = estado.casos.filter {
-        it.etapaNombre != "Cerrado" && it.aceptadoPorLiquidador != true && it.etapaNombre == "En evaluación"
+        it.etapaNombre != "Cerrado" && it.aceptadoPorLiquidador != true && it.etapaNombre != "En liquidaciÃ³n"
     }
     val enLiquidacion = estado.casos.filter {
-        it.etapaNombre != "Cerrado" && (it.aceptadoPorLiquidador == true || it.etapaNombre == "En liquidación")
+        it.etapaNombre != "Cerrado" && (it.aceptadoPorLiquidador == true || it.etapaNombre == "En liquidaciÃ³n")
     }
     val cerrados = estado.casos.filter { it.etapaNombre == "Cerrado" }
     val activosCount = pendientesAceptacion.size + enLiquidacion.size
@@ -165,13 +165,13 @@ fun BandejaLiquidadorScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "LIQUIDADOR EXTERNO · ${estado.especialidad}",
+                                text = "LIQUIDADOR EXTERNO Â· ${estado.especialidad}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MintAndes,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Portal de Liquidación — D.S. N° 1.055",
+                                text = "Portal de LiquidaciÃ³n â€” D.S. NÂ° 1.055",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
@@ -266,13 +266,13 @@ fun BandejaLiquidadorScreen(
                                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                                             ) {
                                                 Text(
-                                                    text = "Bandeja de especialidad ${estado.especialidad} al día",
+                                                    text = "Bandeja de especialidad ${estado.especialidad} al dÃ­a",
                                                     fontWeight = FontWeight.Bold,
                                                     color = PrimaryAndes,
                                                     style = MaterialTheme.typography.titleMedium
                                                 )
                                                 Text(
-                                                    text = "Aún no tienes siniestros asignados por el Analista. Cuando se derive un caso del ramo ${estado.especialidad}, aparecerá aquí con un plazo de 2 días hábiles para aceptar o rechazar.",
+                                                    text = "AÃºn no tienes siniestros asignados por el Analista. Cuando se derive un caso del ramo ${estado.especialidad}, aparecerÃ¡ aquÃ­ con un plazo de 2 dÃ­as hÃ¡biles para aceptar o rechazar.",
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = Color.DarkGray
                                                 )
@@ -291,7 +291,7 @@ fun BandejaLiquidadorScreen(
                                     if (filtroCasos == "todos_activos" || filtroCasos == "por_aceptar") {
                                         item {
                                             Text(
-                                                text = "Pendientes de aceptación (${pendientesAceptacion.size})",
+                                                text = "Pendientes de aceptaciÃ³n (${pendientesAceptacion.size})",
                                                 style = MaterialTheme.typography.titleSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = PrimaryAndes
@@ -306,7 +306,7 @@ fun BandejaLiquidadorScreen(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
                                                     Text(
-                                                        text = "Sin casos pendientes de aceptación en este momento.",
+                                                        text = "Sin casos pendientes de aceptaciÃ³n en este momento.",
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = Color.Gray,
                                                         modifier = Modifier.padding(14.dp)
@@ -338,7 +338,7 @@ fun BandejaLiquidadorScreen(
                                         item {
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(
-                                                text = "En evaluación y liquidación (${enLiquidacion.size})",
+                                                text = "En evaluaciÃ³n y liquidaciÃ³n (${enLiquidacion.size})",
                                                 style = MaterialTheme.typography.titleSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 color = PrimaryAndes
@@ -353,7 +353,7 @@ fun BandejaLiquidadorScreen(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
                                                     Text(
-                                                        text = "No tienes casos aceptados en proceso de liquidación.",
+                                                        text = "No tienes casos aceptados en proceso de liquidaciÃ³n.",
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = Color.Gray,
                                                         modifier = Modifier.padding(14.dp)
@@ -375,7 +375,7 @@ fun BandejaLiquidadorScreen(
                                                         navController.navigate("historial_siniestro/${siniestro.idSiniestro}")
                                                     },
                                                     onEmitirInformeCerrar = {
-                                                        resultadoCierre = if (siniestro.etapaNombre == "En evaluación") "Rechazado" else "Aprobado"
+                                                        resultadoCierre = if (siniestro.etapaNombre == "En evaluaciÃ³n") "Rechazado" else "Aprobado"
                                                         mensajeCierre = ""
                                                         casoParaCerrar = siniestro
                                                     },
@@ -408,7 +408,7 @@ fun BandejaLiquidadorScreen(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
                                                     Text(
-                                                        text = "Aún no tienes expedientes cerrados.",
+                                                        text = "AÃºn no tienes expedientes cerrados.",
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = Color.Gray,
                                                         modifier = Modifier.padding(14.dp)
@@ -440,7 +440,7 @@ fun BandejaLiquidadorScreen(
                                                         ) {
                                                             Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(16.dp), tint = PrimaryAndes)
                                                             Spacer(modifier = Modifier.width(6.dp))
-                                                            Text("Ver bitácora del cierre", color = PrimaryAndes, fontSize = 12.sp)
+                                                            Text("Ver bitÃ¡cora del cierre", color = PrimaryAndes, fontSize = 12.sp)
                                                         }
                                                     }
                                                 }
@@ -466,7 +466,7 @@ fun BandejaLiquidadorScreen(
                         ) {
                             item {
                                 Text(
-                                    "Notificaciones de asignación y evidencias (${estado.avisos.size})",
+                                    "Notificaciones de asignaciÃ³n y evidencias (${estado.avisos.size})",
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryAndes,
                                     style = MaterialTheme.typography.titleSmall
@@ -516,7 +516,7 @@ fun BandejaLiquidadorScreen(
                                             )
                                             if (casoVinculado != null) {
                                                 Text(
-                                                    text = "Toca para gestionar ${casoVinculado.numero} →",
+                                                    text = "Toca para gestionar ${casoVinculado.numero} â†’",
                                                     fontSize = 11.sp,
                                                     color = PrimaryAndes,
                                                     fontWeight = FontWeight.Bold
@@ -546,7 +546,7 @@ fun BandejaLiquidadorScreen(
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
-                            text = "${siniestro.numero}: El expediente se derivará al Liquidador 2 (Respaldo) o quedará marcado para reasignación y registrado en el historial.",
+                            text = "${siniestro.numero}: El expediente se derivarÃ¡ al Liquidador 2 (Respaldo) o quedarÃ¡ marcado para reasignaciÃ³n y registrado en el historial.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.padding(10.dp)
@@ -589,7 +589,7 @@ fun BandejaLiquidadorScreen(
                         label = { Text("Detalle del motivo") },
                         minLines = 3,
                         isError = detalleRechazo.isNotEmpty() && detalleRechazo.trim().length < 10,
-                        supportingText = { Text("Explica el motivo (mín. 10 caracteres)") },
+                        supportingText = { Text("Explica el motivo (mÃ­n. 10 caracteres)") },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -616,13 +616,13 @@ fun BandejaLiquidadorScreen(
         AlertDialog(
             onDismissRequest = { if (!estado.guardandoGestion) idCasoGestion = null },
             containerColor = Color.White,
-            title = { Text("Registrar gestión", color = PrimaryAndes, fontWeight = FontWeight.Bold) },
+            title = { Text("Registrar gestiÃ³n", color = PrimaryAndes, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value = descripcionGestion,
                         onValueChange = { descripcionGestion = it.take(500) },
-                        label = { Text("Descripción de la gestión") },
+                        label = { Text("DescripciÃ³n de la gestiÃ³n") },
                         minLines = 3,
                         isError = estado.errorGestion != null,
                         supportingText = { Text(estado.errorGestion ?: "${descripcionGestion.length}/500") },
@@ -655,8 +655,8 @@ fun BandejaLiquidadorScreen(
         AlertDialog(
             onDismissRequest = { casoParaAvanzar = null },
             containerColor = Color.White,
-            title = { Text("Avanzar a liquidación", color = PrimaryAndes, fontWeight = FontWeight.Bold) },
-            text = { Text("¿Confirmas que todos los documentos están completos para pasar a En liquidación?") },
+            title = { Text("Avanzar a liquidaciÃ³n", color = PrimaryAndes, fontWeight = FontWeight.Bold) },
+            text = { Text("Â¿Confirmas que todos los documentos estÃ¡n completos para pasar a En liquidaciÃ³n?") },
             confirmButton = {
                 Button(
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes),
@@ -673,14 +673,14 @@ fun BandejaLiquidadorScreen(
     }
 
     casoParaCerrar?.let { siniestro ->
-        val enEvaluacion = siniestro.etapaNombre == "En evaluación"
+        val enEvaluacion = siniestro.etapaNombre == "En evaluaciÃ³n"
         AlertDialog(
             onDismissRequest = { casoParaCerrar = null },
             containerColor = Color.White,
             title = { Text("Emitir informe y cerrar siniestro", color = PrimaryAndes, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Resolución para ${siniestro.numero}:")
+                    Text("ResoluciÃ³n para ${siniestro.numero}:")
                     if (!enEvaluacion) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(
@@ -688,7 +688,7 @@ fun BandejaLiquidadorScreen(
                                 onClick = { resultadoCierre = "Aprobado" },
                                 colors = RadioButtonDefaults.colors(selectedColor = PrimaryAndes)
                             )
-                            Text("Aprobado (Indemnización procedente)")
+                            Text("Aprobado (IndemnizaciÃ³n procedente)")
                         }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -702,9 +702,9 @@ fun BandejaLiquidadorScreen(
                     OutlinedTextField(
                         value = mensajeCierre,
                         onValueChange = { mensajeCierre = it.take(500) },
-                        label = { Text("Resumen del informe de liquidación") },
+                        label = { Text("Resumen del informe de liquidaciÃ³n") },
                         minLines = 3,
-                        supportingText = { Text("Mínimo 10 caracteres") },
+                        supportingText = { Text("MÃ­nimo 10 caracteres") },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -791,7 +791,7 @@ private fun CardPendienteAceptacion(
             }
 
             Text(
-                text = "${siniestro.companiaNombre} · Póliza ${siniestro.numeroPoliza}",
+                text = "${siniestro.companiaNombre} Â· PÃ³liza ${siniestro.numeroPoliza}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.DarkGray
             )
@@ -821,12 +821,12 @@ private fun CardPendienteAceptacion(
                 ) {
                     Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(15.dp), tint = PrimaryAndes)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Bitácora", fontSize = 12.sp, color = PrimaryAndes)
+                    Text("BitÃ¡cora", fontSize = 12.sp, color = PrimaryAndes)
                 }
             }
 
             Text(
-                text = "Silencio positivo: si vence el plazo de 2 días hábiles, el caso se entiende aceptado.",
+                text = "Silencio positivo: si vence el plazo de 2 dÃ­as hÃ¡biles, el caso se entiende aceptado.",
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.Gray
             )
@@ -881,7 +881,7 @@ private fun CardEnLiquidacion(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(siniestro.numero, fontWeight = FontWeight.Bold, color = PrimaryAndes)
                     Text(siniestro.tipoSiniestroNombre, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                    Text("${siniestro.companiaNombre} · ${siniestro.comunaNombre}", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
+                    Text("${siniestro.companiaNombre} Â· ${siniestro.comunaNombre}", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
                 }
                 Surface(color = MintAndes, shape = RoundedCornerShape(8.dp)) {
                     Text(
@@ -925,7 +925,7 @@ private fun CardEnLiquidacion(
                 ) {
                     Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(15.dp), tint = PrimaryAndes)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Bitácora", fontSize = 12.sp, color = PrimaryAndes)
+                    Text("BitÃ¡cora", fontSize = 12.sp, color = PrimaryAndes)
                 }
             }
 
@@ -946,11 +946,11 @@ private fun CardEnLiquidacion(
                 TextButton(onClick = onRegistrarGestion, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Default.Description, contentDescription = null, modifier = Modifier.size(16.dp), tint = PrimaryAndes)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Registrar gestión", fontSize = 12.sp, color = PrimaryAndes)
+                    Text("Registrar gestiÃ³n", fontSize = 12.sp, color = PrimaryAndes)
                 }
-                if (siniestro.etapaNombre == "En evaluación") {
+                if (siniestro.etapaNombre == "En evaluaciÃ³n") {
                     TextButton(onClick = onAvanzarLiquidacion, modifier = Modifier.weight(1f)) {
-                        Text("Pasar a liquidación", fontSize = 12.sp, color = PrimaryAndes)
+                        Text("Pasar a liquidaciÃ³n", fontSize = 12.sp, color = PrimaryAndes)
                     }
                 }
             }
@@ -977,7 +977,7 @@ fun BarraSemaforoLegal(diasTranscurridos: Int, totalDias: Int) {
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Plazo D.S. N° 1.055: Día $diasTranscurridos de $totalDias", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text("Plazo D.S. NÂ° 1.055: DÃ­a $diasTranscurridos de $totalDias", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
             Text("Quedan $restantes d", fontSize = 11.sp, color = colorBarra, fontWeight = FontWeight.Bold)
         }
         LinearProgressIndicator(

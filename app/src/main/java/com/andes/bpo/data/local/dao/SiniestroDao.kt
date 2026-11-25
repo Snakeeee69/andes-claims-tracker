@@ -1,4 +1,4 @@
-package com.andes.bpo.data.local.dao
+﻿package com.andes.bpo.data.local.dao
 
 import androidx.room.*
 import com.andes.bpo.data.local.entity.AvisoEntity
@@ -112,11 +112,11 @@ interface SiniestroDao {
             ?: error("Siniestro no encontrado")
 
         check(siniestro.idLiquidador == idLiquidador) {
-            "Este siniestro no está asignado a ti"
+            "Este siniestro no estÃ¡ asignado a ti"
         }
 
-        check(siniestro.etapaNombre == "En evaluación") {
-            "El siniestro debe estar en evaluación"
+        check(siniestro.etapaNombre == "En evaluaciÃ³n") {
+            "El siniestro debe estar en evaluaciÃ³n"
         }
 
         val pendientes = contarDocumentosPendientes(idSiniestro)
@@ -127,9 +127,9 @@ interface SiniestroDao {
 
         val filas = actualizarEtapa(
             id = idSiniestro,
-            etapaAnterior = "En evaluación",
-            nuevaEtapa = "En liquidación",
-            proximoPaso = "Estamos determinando la resolución con tu compañía de seguros.",
+            etapaAnterior = "En evaluaciÃ³n",
+            nuevaEtapa = "En liquidaciÃ³n",
+            proximoPaso = "Estamos determinando la resoluciÃ³n con tu compaÃ±Ã­a de seguros.",
             resultado = null
         )
 
@@ -145,7 +145,7 @@ interface SiniestroDao {
             GestionEntity(
                 idSiniestro = idSiniestro,
                 fechaHora = fechaHora,
-                descripcion = "Tu siniestro pasó a En liquidación. Estamos revisando la resolución del caso.",
+                descripcion = "Tu siniestro pasÃ³ a En liquidaciÃ³n. Estamos revisando la resoluciÃ³n del caso.",
                 responsable = responsable,
                 visibleAsegurado = true
             )
@@ -154,7 +154,7 @@ interface SiniestroDao {
         insertAviso(
             AvisoEntity(
                 fechaHora = fechaHora,
-                mensaje = "Tu siniestro ${siniestro.numero} avanzó a etapa En liquidación.",
+                mensaje = "Tu siniestro ${siniestro.numero} avanzÃ³ a etapa En liquidaciÃ³n.",
                 leido = false,
                 idUsuario = siniestro.idAsegurado,
                 requiereAccion = false,
@@ -181,10 +181,10 @@ interface SiniestroDao {
         UPDATE siniestros
         SET idLiquidador = :idLiquidador,
             liquidadorNombre = :nombreLiquidador,
-            etapaNombre = 'En evaluación',
+            etapaNombre = 'En evaluaciÃ³n',
             aceptadoPorLiquidador = NULL,
             motivoRechazoLiquidador = NULL,
-            proximoPasoTexto = 'Un liquidador está revisando tu caso.'
+            proximoPasoTexto = 'Un liquidador estÃ¡ revisando tu caso.'
         WHERE idSiniestro = :idSiniestro
         """
     )
@@ -222,9 +222,9 @@ interface SiniestroDao {
 
         val equipoNecesario = when {
             siniestro.idArea == 1 ||
-                    tipo.startsWith("Vehículo", ignoreCase = true) ||
+                    tipo.startsWith("VehÃ­culo", ignoreCase = true) ||
                     tipo.startsWith("Vehiculo", ignoreCase = true) ||
-                    tipo.equals("Colisión", ignoreCase = true) ||
+                    tipo.equals("ColisiÃ³n", ignoreCase = true) ||
                     tipo.equals("Choque", ignoreCase = true) -> "VEHICULOS"
             siniestro.idArea == 2 ||
                     tipo.startsWith("Hogar", ignoreCase = true) ||
@@ -240,14 +240,14 @@ interface SiniestroDao {
         }
 
         val equipoVisible = when (equipoNecesario) {
-            "VEHICULOS" -> "Vehículos"
+            "VEHICULOS" -> "VehÃ­culos"
             "HOGAR" -> "Hogar"
             else -> "Salud"
         }
 
         val nombrePublico = liquidador.nombre.trim().substringBefore(" ")
         val inicialApellido = liquidador.apellido.trim().firstOrNull()?.let { "$it." }.orEmpty()
-        val nombreAsignado = "$nombrePublico $inicialApellido – Equipo $equipoVisible"
+        val nombreAsignado = "$nombrePublico $inicialApellido â€“ Equipo $equipoVisible"
 
         val filas = actualizarAsignacion(
             idSiniestro = idSiniestro,
@@ -256,14 +256,14 @@ interface SiniestroDao {
         )
 
         check(filas == 1) {
-            "No se pudo realizar la asignación"
+            "No se pudo realizar la asignaciÃ³n"
         }
 
         insertGestion(
             GestionEntity(
                 idSiniestro = idSiniestro,
                 fechaHora = fechaHora,
-                descripcion = "Tu caso fue asignado a $nombreAsignado. Ahora está en evaluación.",
+                descripcion = "Tu caso fue asignado a $nombreAsignado. Ahora estÃ¡ en evaluaciÃ³n.",
                 responsable = analista.nombre,
                 visibleAsegurado = true
             )
@@ -272,7 +272,7 @@ interface SiniestroDao {
         insertAviso(
             AvisoEntity(
                 fechaHora = fechaHora,
-                mensaje = "Nuevo caso asignado: ${siniestro.numero} (${siniestro.tipoSiniestroNombre}). Tienes 2 días hábiles para aceptar o rechazar.",
+                mensaje = "Nuevo caso asignado: ${siniestro.numero} (${siniestro.tipoSiniestroNombre}). Tienes 2 dÃ­as hÃ¡biles para aceptar o rechazar.",
                 leido = false,
                 idUsuario = idLiquidador,
                 requiereAccion = true,
@@ -322,7 +322,7 @@ interface SiniestroDao {
             ?: error("Siniestro no encontrado")
 
         check(siniestro.idLiquidador == idLiquidador) {
-            "Este siniestro no está asignado a ti"
+            "Este siniestro no estÃ¡ asignado a ti"
         }
 
         check(siniestro.etapaNombre != "Cerrado") {
@@ -332,7 +332,7 @@ interface SiniestroDao {
         val texto = descripcion.trim()
 
         require(texto.length in 5..500) {
-            "La descripción debe tener entre 5 y 500 caracteres"
+            "La descripciÃ³n debe tener entre 5 y 500 caracteres"
         }
 
         require(fechaHora.isNotBlank()) {
@@ -360,7 +360,7 @@ interface SiniestroDao {
         SET etapaNombre = 'Cerrado',
             resultadoCierre = :resultado,
             mensajeCierre = :mensaje,
-            proximoPasoTexto = 'Tu siniestro está cerrado. Revisa el resultado.'
+            proximoPasoTexto = 'Tu siniestro estÃ¡ cerrado. Revisa el resultado.'
         WHERE idSiniestro = :idSiniestro
           AND idLiquidador = :idLiquidador
           AND etapaNombre = :etapaAnterior
@@ -393,17 +393,17 @@ interface SiniestroDao {
             ?: error("Siniestro no encontrado")
 
         check(siniestro.idLiquidador == idLiquidador) {
-            "Este siniestro no está asignado a ti"
+            "Este siniestro no estÃ¡ asignado a ti"
         }
 
         val cierrePermitido = when (siniestro.etapaNombre) {
-            "En evaluación" -> resultado == "Rechazado"
-            "En liquidación" -> resultado == "Aprobado" || resultado == "Rechazado"
+            "En evaluaciÃ³n" -> resultado == "Rechazado"
+            "En liquidaciÃ³n" -> resultado == "Aprobado" || resultado == "Rechazado"
             else -> false
         }
 
         check(cierrePermitido) {
-            "El resultado no está permitido en esta etapa"
+            "El resultado no estÃ¡ permitido en esta etapa"
         }
 
         val mensajeLimpio = mensaje.trim()
@@ -531,7 +531,7 @@ interface SiniestroDao {
             ?: error("Documento no encontrado")
 
         check(borrador.idSiniestro == idSiniestro && borrador.estado == "Borrador") {
-            "El documento no está disponible para enviar"
+            "El documento no estÃ¡ disponible para enviar"
         }
         check(!borrador.rutaUri.isNullOrBlank()) {
             "El borrador no tiene un archivo asociado"
@@ -550,7 +550,7 @@ interface SiniestroDao {
             ) { "No se pudo completar la solicitud" }
 
             check(eliminarDocumentoBorrador(idDocumento, idSiniestro) == 1) {
-                "No se pudo finalizar el envío"
+                "No se pudo finalizar el envÃ­o"
             }
         } else {
             check(marcarBorradorEnviado(idDocumento, idSiniestro, fechaHora) == 1) {
@@ -589,7 +589,7 @@ interface SiniestroDao {
             insertAviso(
                 AvisoEntity(
                     fechaHora = fechaHora,
-                    mensaje = "El asegurado subió evidencia (${borrador.nombreTipoDocumento}) en el caso ${siniestro.numero}.",
+                    mensaje = "El asegurado subiÃ³ evidencia (${borrador.nombreTipoDocumento}) en el caso ${siniestro.numero}.",
                     leido = false,
                     idUsuario = analista.idUsuario,
                     requiereAccion = false,
@@ -628,11 +628,11 @@ interface SiniestroDao {
             ?: error("Siniestro no encontrado")
 
         check(siniestro.idLiquidador == idLiquidador) {
-            "Este siniestro no está asignado a ti"
+            "Este siniestro no estÃ¡ asignado a ti"
         }
 
-        check(siniestro.etapaNombre == "En evaluación") {
-            "Solo puedes solicitar documentos durante la evaluación"
+        check(siniestro.etapaNombre != "Cerrado") {
+            "No puedes solicitar documentos en un siniestro cerrado"
         }
 
         val tipo = tipoDocumento.trim()
@@ -758,7 +758,7 @@ interface SiniestroDao {
     ) {
         val analista = obtenerUsuarioParaAsignacion(idAnalista) ?: error("Analista no encontrado")
         check(analista.rol == "ANALISTA" || analista.rol == "ADMINISTRADOR") { "Sin permisos" }
-        require(diasProrroga == 90 || diasProrroga == 180) { "La prórroga legal debe ser de 90 o 180 días" }
+        require(diasProrroga == 90 || diasProrroga == 180) { "La prÃ³rroga legal debe ser de 90 o 180 dÃ­as" }
 
         val siniestro = obtenerSiniestroActual(idSiniestro) ?: error("Siniestro no encontrado")
         actualizarSiniestro(siniestro.copy(diasProrroga = diasProrroga))
@@ -767,7 +767,7 @@ interface SiniestroDao {
             GestionEntity(
                 idSiniestro = idSiniestro,
                 fechaHora = fechaHora,
-                descripcion = "Prórroga fundada aplicada por $diasProrroga días (D.S. N° 1.055). Motivo: $motivo",
+                descripcion = "PrÃ³rroga fundada aplicada por $diasProrroga dÃ­as (D.S. NÂ° 1.055). Motivo: $motivo",
                 responsable = "${analista.nombre} ${analista.apellido}",
                 visibleAsegurado = true
             )
@@ -777,7 +777,7 @@ interface SiniestroDao {
             insertAviso(
                 AvisoEntity(
                     fechaHora = fechaHora,
-                    mensaje = "Prórroga de $diasProrroga días aplicada al caso ${siniestro.numero}.",
+                    mensaje = "PrÃ³rroga de $diasProrroga dÃ­as aplicada al caso ${siniestro.numero}.",
                     leido = false,
                     idUsuario = idLiq,
                     requiereAccion = false,
@@ -799,8 +799,9 @@ interface SiniestroDao {
 
         actualizarSiniestro(
             siniestro.copy(
+                etapaNombre = if (siniestro.etapaNombre == "Recibido") "En evaluaciÃ³n" else siniestro.etapaNombre,
                 aceptadoPorLiquidador = true,
-                proximoPasoTexto = "El liquidador aceptó el caso y está revisando antecedentes."
+                proximoPasoTexto = "El liquidador aceptÃ³ el caso y estÃ¡ revisando antecedentes."
             )
         )
 
@@ -818,7 +819,7 @@ interface SiniestroDao {
             insertAviso(
                 AvisoEntity(
                     fechaHora = fechaHora,
-                    mensaje = "${liq.nombre} ${liq.apellido} aceptó el caso ${siniestro.numero}.",
+                    mensaje = "${liq.nombre} ${liq.apellido} aceptÃ³ el caso ${siniestro.numero}.",
                     leido = false,
                     idUsuario = analista.idUsuario,
                     requiereAccion = false,
@@ -839,20 +840,20 @@ interface SiniestroDao {
     ) {
         val liq1 = obtenerUsuarioParaAsignacion(idLiquidador1) ?: error("Liquidador origen no encontrado")
         val siniestro = obtenerSiniestroActual(idSiniestro) ?: error("Siniestro no encontrado")
-        check(siniestro.idLiquidador == idLiquidador1) { "Este caso no está asignado a ti" }
+        check(siniestro.idLiquidador == idLiquidador1) { "Este caso no estÃ¡ asignado a ti" }
         require(motivoRechazo.trim().length >= 10) { "Debes indicar un motivo fundado de al menos 10 caracteres" }
 
         actualizarSiniestro(
             siniestro.copy(
                 idLiquidador = idLiquidador2,
                 liquidadorNombre = if (idLiquidador2 != null) "$nombreLiquidador2 (Respaldo)" else "Por reasignar",
-                etapaNombre = if (idLiquidador2 != null) "En evaluación" else "Recibido",
+                etapaNombre = if (idLiquidador2 != null) "En evaluaciÃ³n" else "Recibido",
                 aceptadoPorLiquidador = null,
                 motivoRechazoLiquidador = motivoRechazo.trim(),
                 proximoPasoTexto = if (idLiquidador2 != null) {
                     "Caso reasignado a liquidador de respaldo."
                 } else {
-                    "Caso rechazado por liquidador; pendiente de reasignación."
+                    "Caso rechazado por liquidador; pendiente de reasignaciÃ³n."
                 }
             )
         )
@@ -861,7 +862,7 @@ interface SiniestroDao {
             GestionEntity(
                 idSiniestro = idSiniestro,
                 fechaHora = fechaHora,
-                descripcion = "Liquidador ${liq1.nombre} ${liq1.apellido} rechazó la asignación (${motivoRechazo.trim()}).",
+                descripcion = "Liquidador ${liq1.nombre} ${liq1.apellido} rechazÃ³ la asignaciÃ³n (${motivoRechazo.trim()}).",
                 responsable = "${liq1.nombre} ${liq1.apellido}",
                 visibleAsegurado = true
             )
@@ -871,7 +872,7 @@ interface SiniestroDao {
             insertAviso(
                 AvisoEntity(
                     fechaHora = fechaHora,
-                    mensaje = "URGENTE: ${liq1.nombre} ${liq1.apellido} rechazó ${siniestro.numero} (${motivoRechazo.trim()}). Requiere revisión.",
+                    mensaje = "URGENTE: ${liq1.nombre} ${liq1.apellido} rechazÃ³ ${siniestro.numero} (${motivoRechazo.trim()}). Requiere revisiÃ³n.",
                     leido = false,
                     idUsuario = analista.idUsuario,
                     requiereAccion = true,

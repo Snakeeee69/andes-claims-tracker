@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -71,7 +71,6 @@ class TrackingViewModel(
                 inicialesUsuario = iniciales
             )
 
-            // Sincroniza en segundo plano con ms-siniestros (MySQL)
             launch(Dispatchers.IO) {
                 repository.sincronizarSiniestrosDeUsuario(usuario.rut, usuario.idUsuario)
             }

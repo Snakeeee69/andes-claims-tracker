@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -50,6 +50,12 @@ class BandejaLiquidadorViewModel(
 
     private var cargaJob: Job? = null
 
+    private suspend fun resolverIdLiquidador(rut: String, idFallback: Int): Int {
+        return withContext(Dispatchers.IO) {
+            usuarioDao.buscarPorRut(rut)?.idUsuario ?: idFallback
+        }
+    }
+
     fun cargarCasosAsignados() {
         cargaJob?.cancel()
 
@@ -64,18 +70,20 @@ class BandejaLiquidadorViewModel(
                 return@launch
             }
 
+            val idLiquidadorLocal = resolverIdLiquidador(usuario.rut, usuario.idUsuario)
+
             launch {
-                dao.getAvisosPorUsuario(usuario.idUsuario).collectLatest { listaAvisos ->
+                dao.getAvisosPorUsuario(idLiquidadorLocal).collectLatest { listaAvisos ->
                     _uiState.update { it.copy(avisos = listaAvisos) }
                 }
             }
 
             try {
-                dao.getSiniestrosAsignados(usuario.idUsuario).collectLatest { lista ->
+                dao.getSiniestrosAsignados(idLiquidadorLocal).collectLatest { lista ->
                     _uiState.update {
                         it.copy(
                             cargando = false,
-                            nombreLiquidador = "${usuario.nombre}${usuario.apellido}",
+                            nombreLiquidador = "${usuario.nombre} ${usuario.apellido}".trim(),
                             especialidad = usuario.equipo ?: "GENERAL",
                             casos = lista,
                             error = null
@@ -105,10 +113,11 @@ class BandejaLiquidadorViewModel(
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idLiquidadorLocal = resolverIdLiquidador(usuario.rut, usuario.idUsuario)
                 withContext(Dispatchers.IO) {
-                    dao.aceptarCasoLiquidador(idSiniestro, usuario.idUsuario, fecha)
+                    dao.aceptarCasoLiquidador(idSiniestro, idLiquidadorLocal, fecha)
                 }
-                _uiState.update { it.copy(mensaje = "Caso aceptado. Inicia la liquidación (D.S. N° 1.055)") }
+                _uiState.update { it.copy(mensaje = "Caso aceptado. Inicia la liquidaciÃ³n (D.S. NÂ° 1.055)") }
             } catch (e: Exception) {
                 _uiState.update { it.copy(mensaje = e.message ?: "No se pudo aceptar el caso") }
             }
@@ -121,26 +130,27 @@ class BandejaLiquidadorViewModel(
 
         val motivoCompleto = "$motivo:${detalle.trim()}"
         if (detalle.trim().length < 10) {
-            _uiState.update { it.copy(mensaje = "Explica el motivo (mín. 10 caracteres)") }
+            _uiState.update { it.copy(mensaje = "Explica el motivo (mÃ­n. 10 caracteres)") }
             return
         }
 
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idLiquidadorLocal = resolverIdLiquidador(usuario.rut, usuario.idUsuario)
                 withContext(Dispatchers.IO) {
                     val respaldo = usuarioDao.obtenerLiquidadorRespaldo(usuario.equipo ?: "VEHICULOS")
                     dao.rechazarYDerivarALiquidador2(
                         idSiniestro = idSiniestro,
-                        idLiquidador1 = usuario.idUsuario,
+                        idLiquidador1 = idLiquidadorLocal,
                         idLiquidador2 = respaldo?.idUsuario,
-                        nombreLiquidador2 = respaldo?.let { "${it.nombre}${it.apellido}" },
+                        nombreLiquidador2 = respaldo?.let { "${it.nombre} ${it.apellido}".trim() },
                         motivoRechazo = motivoCompleto,
                         fechaHora = fecha
                     )
                 }
                 _uiState.update {
-                    it.copy(mensaje = "Expediente rechazado y derivado para reasignación")
+                    it.copy(mensaje = "Expediente rechazado y derivado para reasignaciÃ³n")
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(mensaje = e.message ?: "No se pudo derivar el caso") }
@@ -163,15 +173,16 @@ class BandejaLiquidadorViewModel(
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idLiquidadorLocal = resolverIdLiquidador(usuario.rut, usuario.idUsuario)
                 withContext(Dispatchers.IO) {
-                    dao.registrarGestionLiquidador(idSiniestro, usuario.idUsuario, texto, fecha, visibleAsegurado)
+                    dao.registrarGestionLiquidador(idSiniestro, idLiquidadorLocal, texto, fecha, visibleAsegurado)
                 }
                 _uiState.update {
-                    it.copy(guardandoGestion = false, mensaje = "Gestión registrada correctamente", errorGestion = null)
+                    it.copy(guardandoGestion = false, mensaje = "GestiÃ³n registrada correctamente", errorGestion = null)
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(guardandoGestion = false, errorGestion = e.message ?: "No se pudo guardar la gestión")
+                    it.copy(guardandoGestion = false, errorGestion = e.message ?: "No se pudo guardar la gestiÃ³n")
                 }
             }
         }
@@ -186,11 +197,12 @@ class BandejaLiquidadorViewModel(
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idLiquidadorLocal = resolverIdLiquidador(usuario.rut, usuario.idUsuario)
                 withContext(Dispatchers.IO) {
-                    dao.avanzarALiquidacion(idSiniestro, usuario.idUsuario, fecha)
+                    dao.avanzarALiquidacion(idSiniestro, idLiquidadorLocal, fecha)
                 }
                 _uiState.update {
-                    it.copy(avanzandoEtapa = false, mensaje = "El siniestro pasó a En liquidación")
+                    it.copy(avanzandoEtapa = false, mensaje = "El siniestro pasÃ³ a En liquidaciÃ³n")
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -209,8 +221,9 @@ class BandejaLiquidadorViewModel(
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idLiquidadorLocal = resolverIdLiquidador(usuario.rut, usuario.idUsuario)
                 withContext(Dispatchers.IO) {
-                    dao.cerrarSiniestroConHistorial(idSiniestro, usuario.idUsuario, resultado, mensajeCierre, fecha)
+                    dao.cerrarSiniestroConHistorial(idSiniestro, idLiquidadorLocal, resultado, mensajeCierre, fecha)
                 }
                 _uiState.update {
                     it.copy(cerrandoSiniestro = false, mensaje = "Informe emitido y siniestro cerrado")
@@ -241,8 +254,9 @@ class BandejaLiquidadorViewModel(
         viewModelScope.launch {
             try {
                 val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                val idLiquidadorLocal = resolverIdLiquidador(usuario.rut, usuario.idUsuario)
                 withContext(Dispatchers.IO) {
-                    dao.solicitarDocumentoConHistorial(idSiniestro, usuario.idUsuario, tipoDocumento, comentario, fecha)
+                    dao.solicitarDocumentoConHistorial(idSiniestro, idLiquidadorLocal, tipoDocumento, comentario, fecha)
                 }
                 _uiState.update {
                     it.copy(

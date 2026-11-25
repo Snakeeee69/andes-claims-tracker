@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -58,12 +58,11 @@ class MisSiniestrosViewModel(
             if (usuario == null) {
                 _uiState.value = MisSiniestrosUiState(
                     cargando = false,
-                    error = "Debes iniciar sesión nuevamente"
+                    error = "Debes iniciar sesiÃ³n nuevamente"
                 )
                 return@launch
             }
 
-            // Descarga cambios recientes desde MySQL en segundo plano
             launch(Dispatchers.IO) {
                 repository.sincronizarSiniestrosDeUsuario(usuario.rut, usuario.idUsuario)
             }

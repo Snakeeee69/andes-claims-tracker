@@ -1,4 +1,4 @@
-package com.andes.bpo.data.local.entity
+﻿package com.andes.bpo.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.Index

@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -35,7 +35,7 @@ class LoginViewModel(
 
         fun validarCamposLogin(rut: String, contrasena: String): String? {
             return if (rut.isBlank() || contrasena.isBlank()) {
-                "El RUT y la contraseña son obligatorios"
+                "El RUT y la contraseÃ±a son obligatorios"
             } else {
                 null
             }
@@ -68,7 +68,7 @@ class LoginViewModel(
         val contrasenaActual = _uiState.value.contrasena
 
         val rutError = if (rutActual.isBlank()) "Ingresa tu RUT" else null
-        val passError = if (contrasenaActual.isBlank()) "Ingresa tu contraseña" else null
+        val passError = if (contrasenaActual.isBlank()) "Ingresa tu contraseÃ±a" else null
 
         if (rutError != null || passError != null) {
             _uiState.update {
@@ -133,7 +133,7 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = "RUT o contraseña incorrectos"
+                            error = "RUT o contraseÃ±a incorrectos"
                         )
                     }
                 }
@@ -141,14 +141,14 @@ class LoginViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = "Sin conexión con el servidor (10.0.2.2:8080)"
+                        error = "Sin conexiÃ³n con el servidor (10.0.2.2:8080)"
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = e.message ?: "No se pudo iniciar sesión. Inténtalo nuevamente."
+                        error = e.message ?: "No se pudo iniciar sesiÃ³n. IntÃ©ntalo nuevamente."
                     )
                 }
             }
@@ -162,21 +162,21 @@ class LoginViewModel(
         onError: (String) -> Unit
     ) {
         if (nuevaClave == "123456") {
-            onError("La nueva contraseña no puede ser la clave provisoria 123456")
+            onError("La nueva contraseÃ±a no puede ser la clave provisoria 123456")
             return
         }
         if (nuevaClave.length !in 8..72 || !nuevaClave.any { it.isLetter() } || !nuevaClave.any { it.isDigit() }) {
-            onError("Debe tener entre 8 y 72 caracteres, con letras y números")
+            onError("Debe tener entre 8 y 72 caracteres, con letras y nÃºmeros")
             return
         }
         if (nuevaClave != confirmarClave) {
-            onError("Las contraseñas no coinciden")
+            onError("Las contraseÃ±as no coinciden")
             return
         }
 
         viewModelScope.launch {
             try {
-                val sesion = SesionUsuario.obtenerSesion() ?: error("Sesión no activa")
+                val sesion = SesionUsuario.obtenerSesion() ?: error("SesiÃ³n no activa")
 
                 withContext(Dispatchers.IO) {
                     val response = RetrofitClient.api.cambiarClaveObligatoria(
@@ -188,7 +188,7 @@ class LoginViewModel(
                     if (!response.isSuccessful) {
                         val msg = RetrofitClient.extraerMensajeError(
                             response.errorBody()?.string(),
-                            "No se pudo actualizar la contraseña (${response.code()})"
+                            "No se pudo actualizar la contraseÃ±a (${response.code()})"
                         )
                         throw Exception(msg)
                     }
@@ -198,9 +198,9 @@ class LoginViewModel(
                 _uiState.update { it.copy(requiereCambioClave = false) }
                 onExito()
             } catch (e: IOException) {
-                onError("Sin conexión con el servidor (10.0.2.2:8080)")
+                onError("Sin conexiÃ³n con el servidor (10.0.2.2:8080)")
             } catch (e: Exception) {
-                onError(e.message ?: "No se pudo actualizar la contraseña")
+                onError(e.message ?: "No se pudo actualizar la contraseÃ±a")
             }
         }
     }

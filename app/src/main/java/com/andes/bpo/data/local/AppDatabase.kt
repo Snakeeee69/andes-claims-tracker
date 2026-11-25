@@ -1,4 +1,4 @@
-package com.andes.bpo.data.local
+﻿package com.andes.bpo.data.local
 
 import android.content.Context
 import androidx.room.Database
@@ -189,7 +189,7 @@ abstract class AppDatabase : RoomDatabase() {
                 ),
                 UsuarioEntity(
                     rut = "761234560",
-                    nombre = "Transportes Pacífico",
+                    nombre = "Transportes PacÃ­fico",
                     apellido = "SpA",
                     correo = "siniestros@tpacifico.cl",
                     passwordHash = passBase.hash,
@@ -211,7 +211,7 @@ abstract class AppDatabase : RoomDatabase() {
                 UsuarioEntity(
                     rut = "222222222",
                     nombre = "Rodrigo",
-                    apellido = "Muñoz",
+                    apellido = "MuÃ±oz",
                     correo = "r.munoz@andes.cl",
                     passwordHash = passBase.hash,
                     passwordSalt = passBase.salt,
@@ -298,15 +298,15 @@ abstract class AppDatabase : RoomDatabase() {
                             idAsegurado = pollosHermanos.idUsuario,
                             companiaNombre = "HDI Seguros",
                             numeroPoliza = "POL-FLT-40912",
-                            tipoSiniestroNombre = "Vehículo - Robo con Intimidación en Ruta",
-                            modeloVehiculo = "Flota Camiones Frigoríficos Scania P320 (2 unidades)",
+                            tipoSiniestroNombre = "VehÃ­culo - Robo con IntimidaciÃ³n en Ruta",
+                            modeloVehiculo = "Flota Camiones FrigorÃ­ficos Scania P320 (2 unidades)",
                             fechaOcurrencia = "20/11/2026",
                             fechaReporte = "21/11/2026 08:15",
                             comunaNombre = "Lampa (Ruta 5 Norte)",
-                            descripcion = "Asalto armado en carretera a dos camiones frigoríficos de distribución de Pollos Hermanos SpA durante traslado de carga entre centros.",
+                            descripcion = "Asalto armado en carretera a dos camiones frigorÃ­ficos de distribuciÃ³n de Pollos Hermanos SpA durante traslado de carga entre centros.",
                             etapaNombre = "Recibido",
                             liquidadorNombre = "Por asignar",
-                            proximoPasoTexto = "En revisión por Analista para asignar liquidador de Vehículos.",
+                            proximoPasoTexto = "En revisiÃ³n por Analista para asignar liquidador de VehÃ­culos.",
                             idArea = 1
                         )
                     )
@@ -316,7 +316,7 @@ abstract class AppDatabase : RoomDatabase() {
                             GestionEntity(
                                 idSiniestro = 9001,
                                 fechaHora = "21/11/2026 08:15",
-                                descripcion = "Denuncio ingresado por Pollos Hermanos SpA: Robo de camiones frigoríficos en Ruta 5 Norte.",
+                                descripcion = "Denuncio ingresado por Pollos Hermanos SpA: Robo de camiones frigorÃ­ficos en Ruta 5 Norte.",
                                 responsable = "Pollos Hermanos SpA",
                                 visibleAsegurado = true
                             )
@@ -325,7 +325,7 @@ abstract class AppDatabase : RoomDatabase() {
                             DocumentoEntity(
                                 idSiniestro = 9001,
                                 nombreTipoDocumento = "Parte Policial Carabineros",
-                                comentario = "Constancia de robo con intimidación en carretera",
+                                comentario = "Constancia de robo con intimidaciÃ³n en carretera",
                                 fechaSolicitud = "21/11/2026 08:15",
                                 estado = "Entregado",
                                 nombreArchivo = "Parte_Policial_Camiones_Ruta5.pdf",
@@ -336,8 +336,8 @@ abstract class AppDatabase : RoomDatabase() {
                         siniestroDao.insertDocumento(
                             DocumentoEntity(
                                 idSiniestro = 9001,
-                                nombreTipoDocumento = "Padrón y Guía de Despacho",
-                                comentario = "Acreditación de flota y carga transportada",
+                                nombreTipoDocumento = "PadrÃ³n y GuÃ­a de Despacho",
+                                comentario = "AcreditaciÃ³n de flota y carga transportada",
                                 fechaSolicitud = "21/11/2026 08:15",
                                 estado = "Entregado",
                                 nombreArchivo = "Padron_Flota_Frigorifica.pdf",
@@ -350,7 +350,7 @@ abstract class AppDatabase : RoomDatabase() {
                             siniestroDao.insertAviso(
                                 AvisoEntity(
                                     fechaHora = "21/11/2026 08:15",
-                                    mensaje = "Nuevo siniestro recibido: SIN-2026-8850 (Robo camiones frigoríficos) de Pollos Hermanos SpA. Pendiente de asignación.",
+                                    mensaje = "Nuevo siniestro recibido: SIN-2026-8850 (Robo camiones frigorÃ­ficos) de Pollos Hermanos SpA. Pendiente de asignaciÃ³n.",
                                     leido = false,
                                     idUsuario = dest.idUsuario,
                                     requiereAccion = true,
@@ -369,15 +369,15 @@ abstract class AppDatabase : RoomDatabase() {
                             idAsegurado = pollosHermanos.idUsuario,
                             companiaNombre = "Chilena Consolidada (Zurich)",
                             numeroPoliza = "POL-INC-88421",
-                            tipoSiniestroNombre = "Hogar - Incendio Planta Lavandería",
-                            modeloVehiculo = "Lavandería Industrial Brillante - Lavado de Uniformes",
+                            tipoSiniestroNombre = "Hogar - Incendio Planta LavanderÃ­a",
+                            modeloVehiculo = "LavanderÃ­a Industrial Brillante - Lavado de Uniformes",
                             fechaOcurrencia = "21/11/2026",
                             fechaReporte = "22/11/2026 09:30",
                             comunaNombre = "Quilicura",
-                            descripcion = "Incendio estructural con pérdida total en planta de lavandería industrial donde se lavaban los uniformes del personal de Pollos Hermanos SpA.",
+                            descripcion = "Incendio estructural con pÃ©rdida total en planta de lavanderÃ­a industrial donde se lavaban los uniformes del personal de Pollos Hermanos SpA.",
                             etapaNombre = "Recibido",
                             liquidadorNombre = "Por asignar",
-                            proximoPasoTexto = "En revisión por Analista para asignar liquidador especialista en Hogar/Incendio.",
+                            proximoPasoTexto = "En revisiÃ³n por Analista para asignar liquidador especialista en Hogar/Incendio.",
                             idArea = 2
                         )
                     )
@@ -386,7 +386,7 @@ abstract class AppDatabase : RoomDatabase() {
                         GestionEntity(
                             idSiniestro = 9002,
                             fechaHora = "22/11/2026 09:30",
-                            descripcion = "Denuncio ingresado por Pollos Hermanos SpA: Incendio total en lavandería industrial de uniformes.",
+                            descripcion = "Denuncio ingresado por Pollos Hermanos SpA: Incendio total en lavanderÃ­a industrial de uniformes.",
                             responsable = "Pollos Hermanos SpA",
                             visibleAsegurado = true
                         )
@@ -394,7 +394,7 @@ abstract class AppDatabase : RoomDatabase() {
                     siniestroDao.insertDocumento(
                         DocumentoEntity(
                             idSiniestro = 9002,
-                            nombreTipoDocumento = "Póliza Incendio Comercial",
+                            nombreTipoDocumento = "PÃ³liza Incendio Comercial",
                             comentario = "Cobertura instalaciones industriales y maquinaria",
                             fechaSolicitud = "22/11/2026 09:30",
                             estado = "Entregado",
@@ -407,7 +407,7 @@ abstract class AppDatabase : RoomDatabase() {
                         DocumentoEntity(
                             idSiniestro = 9002,
                             nombreTipoDocumento = "Informe de Bomberos",
-                            comentario = "Peritaje preliminar incendio en nave de lavandería",
+                            comentario = "Peritaje preliminar incendio en nave de lavanderÃ­a",
                             fechaSolicitud = "22/11/2026 09:30",
                             estado = "Entregado",
                             nombreArchivo = "Informe_Bomberos_Lavanderia.pdf",
@@ -420,7 +420,7 @@ abstract class AppDatabase : RoomDatabase() {
                         siniestroDao.insertAviso(
                             AvisoEntity(
                                 fechaHora = "22/11/2026 09:30",
-                                mensaje = "Nuevo siniestro recibido: SIN-2026-8851 (Incendio lavandería de uniformes) de Pollos Hermanos SpA. Pendiente de asignación.",
+                                mensaje = "Nuevo siniestro recibido: SIN-2026-8851 (Incendio lavanderÃ­a de uniformes) de Pollos Hermanos SpA. Pendiente de asignaciÃ³n.",
                                 leido = false,
                                 idUsuario = dest.idUsuario,
                                 requiereAccion = true,

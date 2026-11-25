@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -89,11 +89,10 @@ fun RegistroScreen(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Volver al inicio de sesión")
+                    Text("Volver al inicio de sesiÃ³n")
                 }
             } else {
-                // 1. IDENTIFICACIÓN
-                TituloSeccion("1. Identificación")
+                TituloSeccion("1. IdentificaciÃ³n")
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -123,7 +122,7 @@ fun RegistroScreen(
                 )
 
                 CampoRegistro(
-                    etiqueta = if (esEmpresa) "Razón Social" else "Nombre",
+                    etiqueta = if (esEmpresa) "RazÃ³n Social" else "Nombre",
                     valor = estado.nombre,
                     onCambio = { viewModel.cambiarCampo("nombre", it) },
                     error = estado.errores["nombre"]
@@ -138,11 +137,10 @@ fun RegistroScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-                // 2. CONTACTO
                 TituloSeccion("2. Contacto")
 
                 CampoRegistro(
-                    etiqueta = "Correo electrónico",
+                    etiqueta = "Correo electrÃ³nico",
                     valor = estado.correo,
                     onCambio = { viewModel.cambiarCampo("correo", it) },
                     error = estado.errores["correo"],
@@ -151,8 +149,7 @@ fun RegistroScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-                // 3. DATOS DEL SEGURO Y UBICACIÓN
-                TituloSeccion("3. Seguro y Ubicación")
+                TituloSeccion("3. Seguro y UbicaciÃ³n")
 
                 SelectorDesplegable(
                     etiqueta = "Aseguradora",
@@ -163,7 +160,7 @@ fun RegistroScreen(
                 )
 
                 SelectorDesplegable(
-                    etiqueta = "Región",
+                    etiqueta = "RegiÃ³n",
                     seleccionado = estado.region,
                     opciones = RegistroViewModel.REGIONES_CHILE,
                     onSeleccionar = { viewModel.cambiarCampo("region", it) },
@@ -171,7 +168,7 @@ fun RegistroScreen(
                 )
 
                 CampoRegistro(
-                    etiqueta = "Dirección (Calle y número - opcional)",
+                    etiqueta = "DirecciÃ³n (Calle y nÃºmero - opcional)",
                     valor = estado.direccion,
                     onCambio = { viewModel.cambiarCampo("direccion", it) },
                     error = estado.errores["direccion"]
@@ -179,11 +176,10 @@ fun RegistroScreen(
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-                // 4. SEGURIDAD
                 TituloSeccion("4. Seguridad")
 
                 CampoRegistro(
-                    etiqueta = "Contraseña",
+                    etiqueta = "ContraseÃ±a",
                     valor = estado.contrasena,
                     onCambio = { viewModel.cambiarCampo("contrasena", it) },
                     error = estado.errores["contrasena"],
@@ -192,7 +188,7 @@ fun RegistroScreen(
                 )
 
                 CampoRegistro(
-                    etiqueta = "Confirmar contraseña",
+                    etiqueta = "Confirmar contraseÃ±a",
                     valor = estado.confirmacion,
                     onCambio = { viewModel.cambiarCampo("confirmacion", it) },
                     error = estado.errores["confirmacion"],
@@ -200,7 +196,6 @@ fun RegistroScreen(
                     esPassword = true
                 )
 
-                // 5. TÉRMINOS Y CONDICIONES
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -211,7 +206,7 @@ fun RegistroScreen(
                             onCheckedChange = { viewModel.cambiarAceptacionTerminos(it) }
                         )
                         val textoTerminos = buildAnnotatedString {
-                            append("He leído y acepto los ")
+                            append("He leÃ­do y acepto los ")
                             withStyle(
                                 style = SpanStyle(
                                     color = MaterialTheme.colorScheme.primary,
@@ -219,7 +214,7 @@ fun RegistroScreen(
                                     textDecoration = TextDecoration.Underline
                                 )
                             ) {
-                                append("Términos y Condiciones")
+                                append("TÃ©rminos y Condiciones")
                             }
                             append(" de Servicios Corporativos Andes SpA.")
                         }
@@ -286,7 +281,7 @@ private fun DialogoTerminosYCondiciones(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Términos y Condiciones de Uso",
+                text = "TÃ©rminos y Condiciones de Uso",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -307,27 +302,27 @@ private fun DialogoTerminosYCondiciones(
 
                 ClausulaTerminos(
                     titulo = "1. Objeto de la Plataforma",
-                    cuerpo = "Esta aplicación permite a asegurados (personas naturales y empresas) denunciar siniestros, adjuntar respaldos documentales y consultar en línea el estado de sus procesos de liquidación en las áreas de Vehículos, Hogar/Incendio y Salud/Vida."
+                    cuerpo = "Esta aplicaciÃ³n permite a asegurados (personas naturales y empresas) denunciar siniestros, adjuntar respaldos documentales y consultar en lÃ­nea el estado de sus procesos de liquidaciÃ³n en las Ã¡reas de VehÃ­culos, Hogar/Incendio y Salud/Vida."
                 )
 
                 ClausulaTerminos(
                     titulo = "2. Veracidad de los Antecedentes",
-                    cuerpo = "El usuario declara bajo su responsabilidad que los datos proporcionados, pólizas y documentos adjuntos (fotografías, declaraciones, presupuestos, certificados o boletas) son auténticos y fidedignos. La entrega de información falsa o adulterada facultará el rechazo del siniestro conforme al Código de Comercio."
+                    cuerpo = "El usuario declara bajo su responsabilidad que los datos proporcionados, pÃ³lizas y documentos adjuntos (fotografÃ­as, declaraciones, presupuestos, certificados o boletas) son autÃ©nticos y fidedignos. La entrega de informaciÃ³n falsa o adulterada facultarÃ¡ el rechazo del siniestro conforme al CÃ³digo de Comercio."
                 )
 
                 ClausulaTerminos(
-                    titulo = "3. Plazos Legales de Liquidación (D.S. N° 1.055)",
-                    cuerpo = "La tramitación y liquidación de siniestros se rige por el Decreto Supremo N° 1.055 del Ministerio de Hacienda. El plazo general de resolución es de 45 días corridos desde la denuncia, pudiendo prorrogarse fundadamente por 90 o 180 días en los casos calificados que autoriza la normativa vigente."
+                    titulo = "3. Plazos Legales de LiquidaciÃ³n (D.S. NÂ° 1.055)",
+                    cuerpo = "La tramitaciÃ³n y liquidaciÃ³n de siniestros se rige por el Decreto Supremo NÂ° 1.055 del Ministerio de Hacienda. El plazo general de resoluciÃ³n es de 45 dÃ­as corridos desde la denuncia, pudiendo prorrogarse fundadamente por 90 o 180 dÃ­as en los casos calificados que autoriza la normativa vigente."
                 )
 
                 ClausulaTerminos(
-                    titulo = "4. Privacidad y Protección de Datos (Ley N° 19.628)",
-                    cuerpo = "Los datos personales, patrimoniales y médicos ingresados serán tratados con estricta confidencialidad de acuerdo con la Ley N° 19.628 sobre Protección de la Vida Privada, y se utilizarán exclusivamente para gestionar la evaluación, liquidación y resolución del siniestro ante la compañía aseguradora y los liquidadores designados."
+                    titulo = "4. Privacidad y ProtecciÃ³n de Datos (Ley NÂ° 19.628)",
+                    cuerpo = "Los datos personales, patrimoniales y mÃ©dicos ingresados serÃ¡n tratados con estricta confidencialidad de acuerdo con la Ley NÂ° 19.628 sobre ProtecciÃ³n de la Vida Privada, y se utilizarÃ¡n exclusivamente para gestionar la evaluaciÃ³n, liquidaciÃ³n y resoluciÃ³n del siniestro ante la compaÃ±Ã­a aseguradora y los liquidadores designados."
                 )
 
                 ClausulaTerminos(
-                    titulo = "5. Notificaciones Electrónicas y Seguridad",
-                    cuerpo = "El asegurado acepta recibir notificaciones sobre solicitudes de documentos, asignaciones y resoluciones a través de la aplicación y al correo electrónico registrado. Es deber del usuario custodiar la confidencialidad de su clave de acceso."
+                    titulo = "5. Notificaciones ElectrÃ³nicas y Seguridad",
+                    cuerpo = "El asegurado acepta recibir notificaciones sobre solicitudes de documentos, asignaciones y resoluciones a travÃ©s de la aplicaciÃ³n y al correo electrÃ³nico registrado. Es deber del usuario custodiar la confidencialidad de su clave de acceso."
                 )
             }
         },
@@ -453,7 +448,7 @@ private fun CampoRegistro(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                        contentDescription = if (passwordVisible) "Ocultar contraseÃ±a" else "Mostrar contraseÃ±a"
                     )
                 }
             }

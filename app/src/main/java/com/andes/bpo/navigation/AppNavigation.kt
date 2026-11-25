@@ -1,4 +1,4 @@
-package com.andes.bpo.navigation
+﻿package com.andes.bpo.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
@@ -10,8 +10,9 @@ import com.andes.bpo.ui.screens.*
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "splash") {
 
+        composable("splash") { SplashScreen(navController) }
         composable("login") { LoginScreen(navController) }
         composable("cambio_clave_obligatorio") { CambioClaveObligatorioScreen(navController) }
         composable("registro") { RegistroScreen(navController) }

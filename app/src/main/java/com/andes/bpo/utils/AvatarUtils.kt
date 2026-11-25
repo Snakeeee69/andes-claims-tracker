@@ -1,4 +1,4 @@
-package com.andes.bpo.utils
+﻿package com.andes.bpo.utils
 
 import android.content.Context
 import android.graphics.Bitmap

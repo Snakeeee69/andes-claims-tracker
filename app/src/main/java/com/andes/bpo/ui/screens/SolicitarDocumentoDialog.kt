@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,8 +18,8 @@ fun SolicitarDocumentoDialog(
     onSolicitar: (String, String) -> Unit
 ) {
     val tipos = listOf(
-        "Fotografía del daño",
-        "Presupuesto de reparación",
+        "FotografÃ­a del daÃ±o",
+        "Presupuesto de reparaciÃ³n",
         "Denuncia policial",
         "Otro documento"
     )
@@ -101,7 +101,7 @@ fun SolicitarDocumentoDialog(
                 )
 
                 Text(
-                    "El asegurado verá esta solicitud " +
+                    "El asegurado verÃ¡ esta solicitud " +
                             "como pendiente.",
                     style = MaterialTheme.typography.bodySmall
                 )

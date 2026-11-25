@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -34,7 +34,7 @@ class DocumentosLiquidadorViewModel(application: Application) : AndroidViewModel
         cargaJob = viewModelScope.launch {
             try {
                 val sesion = SesionUsuario.obtenerSesion()
-                    ?: error("Debes iniciar sesión")
+                    ?: error("Debes iniciar sesiÃ³n")
 
                 check(sesion.rol.startsWith("LIQUIDADOR")) {
                     "Solo un liquidador puede consultar esta bandeja"
@@ -48,7 +48,7 @@ class DocumentosLiquidadorViewModel(application: Application) : AndroidViewModel
                 }.collectLatest { (siniestro, documentos) ->
                     check(siniestro != null) { "Siniestro no encontrado" }
                     check(siniestro.idLiquidador == sesion.idUsuario) {
-                        "Este siniestro no está asignado a ti"
+                        "Este siniestro no estÃ¡ asignado a ti"
                     }
                     _uiState.value = DocumentosLiquidadorUiState(
                         cargando = false,

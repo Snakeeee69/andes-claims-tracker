@@ -1,4 +1,4 @@
-package com.andes.bpo.model
+﻿package com.andes.bpo.model
 
 data class TrackingUiState(
     val idSiniestro: Int = 0,

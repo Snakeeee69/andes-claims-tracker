@@ -1,4 +1,4 @@
-package com.andes.bpo.model
+﻿package com.andes.bpo.model
 
 import com.andes.bpo.data.local.entity.AreaEntity
 import com.andes.bpo.data.local.entity.DocumentoEntity

@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -49,8 +49,8 @@ fun TrackingScreen(
     } else {
         val textoEstado = when (uiState.estadoActual) {
             1 -> "Recibido"
-            2 -> "En evaluación"
-            3 -> "En liquidación"
+            2 -> "En evaluaciÃ³n"
+            3 -> "En liquidaciÃ³n"
             4 -> "Cerrado"
             else -> "En progreso"
         }
@@ -64,11 +64,11 @@ fun TrackingScreen(
             uiState.tipo.contains("Hogar", ignoreCase = true) ||
                     uiState.tipo.contains("Incendio", ignoreCase = true) ||
                     uiState.subtipo.contains("Hogar", ignoreCase = true) ||
-                    uiState.subtipo.contains("Incendio", ignoreCase = true) -> "Dirección del inmueble"
+                    uiState.subtipo.contains("Incendio", ignoreCase = true) -> "DirecciÃ³n del inmueble"
 
-            uiState.tipo.contains("Vehículo", ignoreCase = true) ||
+            uiState.tipo.contains("VehÃ­culo", ignoreCase = true) ||
                     uiState.tipo.contains("Auto", ignoreCase = true) ||
-                    uiState.subtipo.contains("Vehículo", ignoreCase = true) ||
+                    uiState.subtipo.contains("VehÃ­culo", ignoreCase = true) ||
                     uiState.subtipo.contains("Auto", ignoreCase = true) -> "Modelo"
 
             else -> "Bien o persona asegurada"
@@ -179,13 +179,13 @@ fun TrackingScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "¡Hola, $nombreUsuario!",
+                    text = "Â¡Hola, $nombreUsuario!",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF263C35)
                 )
                 Text(
-                    text = "Revisa aquí el avance y detalle de tus siniestros.",
+                    text = "Revisa aquÃ­ el avance y detalle de tus siniestros.",
                     fontSize = 13.sp,
                     color = Color.Gray
                 )
@@ -205,7 +205,7 @@ fun TrackingScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "ÚLTIMO SINIESTRO",
+                                    text = "ÃšLTIMO SINIESTRO",
                                     color = Color.White.copy(alpha = 0.8f),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
@@ -299,7 +299,7 @@ fun TrackingScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             DetalleFila("Subtipo", uiState.subtipo)
                             DetalleFila(etiquetaDetalleBien, uiState.modeloVehiculo.ifBlank { "No especificado" })
-                            DetalleFila("Póliza", uiState.numeroPoliza)
+                            DetalleFila("PÃ³liza", uiState.numeroPoliza)
                             DetalleFila("Aseguradora", uiState.aseguradora)
                         }
                     }
@@ -330,7 +330,7 @@ fun TrackingScreen(
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "No registras eventos en curso asociados a tu cuenta. Si tuviste un accidente o daño vehicular, reporta tu caso aquí.",
+                                text = "No registras eventos en curso asociados a tu cuenta. Si tuviste un accidente o daÃ±o vehicular, reporta tu caso aquÃ­.",
                                 fontSize = 13.sp,
                                 color = Color.Gray,
                                 lineHeight = 18.sp
@@ -358,7 +358,7 @@ fun TrackingScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("ℹ️", fontSize = 18.sp)
+                        Text("â„¹ï¸", fontSize = 18.sp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Te notificaremos de inmediato ante cualquier cambio de estado. No necesitas llamar ni visitar una oficina.",
@@ -406,7 +406,7 @@ fun BadgeEstado(texto: String) {
 
 @Composable
 fun StepperSiniestro(pasoActual: Int) {
-    val pasos = listOf("Recibido", "En evaluación", "En liquidación", "Cerrado")
+    val pasos = listOf("Recibido", "En evaluaciÃ³n", "En liquidaciÃ³n", "Cerrado")
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -423,7 +423,7 @@ fun StepperSiniestro(pasoActual: Int) {
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (completado && numero < pasoActual) "✓" else "$numero",
+                            text = if (completado && numero < pasoActual) "âœ“" else "$numero",
                             color = if (completado) Color.Black else Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp

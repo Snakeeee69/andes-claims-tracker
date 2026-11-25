@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -46,7 +46,7 @@ fun PanelInternoScreen(
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryAndes)
             ) {
-                Text("Volver al inicio de sesión")
+                Text("Volver al inicio de sesiÃ³n")
             }
         }
         return

@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import android.Manifest
 import android.content.Intent
@@ -60,7 +60,7 @@ fun EvidenciaScreen(
             sesion?.rol?.startsWith("LIQUIDADOR") == true
 
     var mostrarOpciones by remember { mutableStateOf(false) }
-    var tipoDocumento by remember { mutableStateOf("Fotografía del daño") }
+    var tipoDocumento by remember { mutableStateOf("FotografÃ­a del daÃ±o") }
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
     var tempCameraFile by remember { mutableStateOf<File?>(null) }
     var documentoAEliminar by remember { mutableStateOf<DocumentoEntity?>(null) }
@@ -105,14 +105,14 @@ fun EvidenciaScreen(
             tempCameraUri = uri
             camara.launch(uri)
         } catch (e: Exception) {
-            errorLocal = "No se pudo abrir la cámara: ${e.message}"
+            errorLocal = "No se pudo abrir la cÃ¡mara: ${e.message}"
         }
     }
 
     val permisoCamara = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { concedido ->
-        if (concedido) iniciarCamara() else errorLocal = "Se necesita permiso para usar la cámara"
+        if (concedido) iniciarCamara() else errorLocal = "Se necesita permiso para usar la cÃ¡mara"
     }
 
     fun solicitarCamara() {
@@ -164,14 +164,14 @@ fun EvidenciaScreen(
             Spacer(Modifier.height(12.dp))
             Text(
                 if (esModoAuditoriaInterna) {
-                    "Revisión de documentos solicitados y respaldos adjuntos por el asegurado."
+                    "RevisiÃ³n de documentos solicitados y respaldos adjuntos por el asegurado."
                 } else {
-                    "Imágenes y PDF asociados a este siniestro (máximo 15 archivos de 5 MB)."
+                    "ImÃ¡genes y PDF asociados a este siniestro (mÃ¡ximo 15 archivos de 5 MB)."
                 }
             )
             if (estado.cerrado) {
                 Text(
-                    "El caso está cerrado: solo puedes consultar sus documentos.",
+                    "El caso estÃ¡ cerrado: solo puedes consultar sus documentos.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -255,7 +255,7 @@ fun EvidenciaScreen(
                             )
                         }
                         if (estado.evidencias.isEmpty()) {
-                            item { Text("Todavía no hay archivos adjuntos a este siniestro.") }
+                            item { Text("TodavÃ­a no hay archivos adjuntos a este siniestro.") }
                         } else {
                             items(
                                 estado.evidencias,
@@ -322,7 +322,7 @@ fun EvidenciaScreen(
                                 Text("Recepcionado: ${doc.fechaRecepcion}", fontSize = 12.sp)
                             }
                             if (!doc.comentario.isNullOrBlank()) {
-                                Text("Observación: ${doc.comentario}", fontSize = 12.sp)
+                                Text("ObservaciÃ³n: ${doc.comentario}", fontSize = 12.sp)
                             }
                         }
                     }
@@ -345,14 +345,14 @@ fun EvidenciaScreen(
             title = { Text("Agregar evidencia") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Indica qué tipo de documento vas a adjuntar:")
+                    Text("Indica quÃ© tipo de documento vas a adjuntar:")
                     listOf(
-                        "Fotografía del daño",
+                        "FotografÃ­a del daÃ±o",
                         "Parte Policial / Denuncia",
                         "Informe de Bomberos",
-                        "Póliza / Guía de Despacho",
+                        "PÃ³liza / GuÃ­a de Despacho",
                         "Presupuesto o Factura",
-                        "Orden Médica / Boleta",
+                        "Orden MÃ©dica / Boleta",
                         "Otro documento"
                     ).forEach { opcion ->
                         Row(
@@ -374,7 +374,7 @@ fun EvidenciaScreen(
                             mostrarOpciones = false
                             galeria.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         }, modifier = Modifier.fillMaxWidth()
-                    ) { Text("Elegir imagen de la galería") }
+                    ) { Text("Elegir imagen de la galerÃ­a") }
                     OutlinedButton(
                         onClick = {
                             mostrarOpciones = false
@@ -386,7 +386,7 @@ fun EvidenciaScreen(
                             mostrarOpciones = false
                             solicitarCamara()
                         }, modifier = Modifier.fillMaxWidth()
-                    ) { Text("Tomar una fotografía") }
+                    ) { Text("Tomar una fotografÃ­a") }
                 }
             },
             confirmButton = {
@@ -399,7 +399,7 @@ fun EvidenciaScreen(
         AlertDialog(
             onDismissRequest = { documentoAEliminar = null },
             title = { Text("Eliminar borrador") },
-            text = { Text("¿Deseas eliminar '${documento.nombreArchivo}'? Esta acción no se puede deshacer.") },
+            text = { Text("Â¿Deseas eliminar '${documento.nombreArchivo}'? Esta acciÃ³n no se puede deshacer.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.eliminarBorrador(idSiniestro, documento.idDocumento)

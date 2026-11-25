@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -23,7 +23,7 @@ fun CambioClaveObligatorioScreen(
     var error by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Actualización obligatoria de clave") }) }
+        topBar = { TopAppBar(title = { Text("ActualizaciÃ³n obligatoria de clave") }) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -37,13 +37,13 @@ fun CambioClaveObligatorioScreen(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Text("Por seguridad, debes crear una contraseña personal antes de operar en Andes BPO.")
+            Text("Por seguridad, debes crear una contraseÃ±a personal antes de operar en Andes BPO.")
 
             OutlinedTextField(
                 value = nuevaClave,
                 onValueChange = { nuevaClave = it; error = null },
-                label = { Text("Nueva contraseña") },
-                supportingText = { Text("Mínimo 8 caracteres, letras y números") },
+                label = { Text("Nueva contraseÃ±a") },
+                supportingText = { Text("MÃ­nimo 8 caracteres, letras y nÃºmeros") },
                 visualTransformation = PasswordVisualTransformation(),
                 isError = error != null,
                 modifier = Modifier.fillMaxWidth(),
@@ -53,7 +53,7 @@ fun CambioClaveObligatorioScreen(
             OutlinedTextField(
                 value = confirmarClave,
                 onValueChange = { confirmarClave = it; error = null },
-                label = { Text("Confirmar nueva contraseña") },
+                label = { Text("Confirmar nueva contraseÃ±a") },
                 visualTransformation = PasswordVisualTransformation(),
                 isError = error != null,
                 supportingText = { error?.let { Text(it) } },
@@ -84,7 +84,7 @@ fun CambioClaveObligatorioScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Guardar contraseña y continuar")
+                Text("Guardar contraseÃ±a y continuar")
             }
         }
     }

@@ -1,9 +1,9 @@
-package com.andes.bpo.model
+﻿package com.andes.bpo.model
 
 enum class EstadoSiniestro(val descripcion: String) {
     RECIBIDO("Recibido"),
-    EN_EVALUACION("En evaluación"),
-    EN_LIQUIDACION("En liquidación"),
+    EN_EVALUACION("En evaluaciÃ³n"),
+    EN_LIQUIDACION("En liquidaciÃ³n"),
     CERRADO("Cerrado")
 }
 

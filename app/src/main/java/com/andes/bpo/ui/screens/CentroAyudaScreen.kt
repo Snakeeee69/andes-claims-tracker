@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -34,20 +34,20 @@ fun CentroAyudaScreen(navController: NavController) {
     val preguntas = remember {
         listOf(
             PreguntaFrecuente(
-                "¿Cómo reporto un siniestro?",
-                "Selecciona 'Reportar siniestro' en la app o ingresa directamente con tu RUT. Tu caso quedará registrado en la etapa 'Recibido'."
+                "Â¿CÃ³mo reporto un siniestro?",
+                "Selecciona 'Reportar siniestro' en la app o ingresa directamente con tu RUT. Tu caso quedarÃ¡ registrado en la etapa 'Recibido'."
             ),
             PreguntaFrecuente(
-                "¿Qué significa cada estado?",
-                "Recibido: registramos tu reporte. En evaluación: revisamos los antecedentes. En liquidación: definimos la resolución. Cerrado: el proceso ha finalizado."
+                "Â¿QuÃ© significa cada estado?",
+                "Recibido: registramos tu reporte. En evaluaciÃ³n: revisamos los antecedentes. En liquidaciÃ³n: definimos la resoluciÃ³n. Cerrado: el proceso ha finalizado."
             ),
             PreguntaFrecuente(
-                "¿Cómo adjunto documentos?",
-                "En la pantalla de tu siniestro, presiona 'Ver / Adjuntar Evidencias'. Puedes capturar una foto con la cámara o subir archivos PDF."
+                "Â¿CÃ³mo adjunto documentos?",
+                "En la pantalla de tu siniestro, presiona 'Ver / Adjuntar Evidencias'. Puedes capturar una foto con la cÃ¡mara o subir archivos PDF."
             ),
             PreguntaFrecuente(
-                "¿Necesito llamar a la aseguradora?",
-                "No es necesario. Todos los avances y resoluciones de tu caso se actualizarán en tiempo real directamente en esta aplicación."
+                "Â¿Necesito llamar a la aseguradora?",
+                "No es necesario. Todos los avances y resoluciones de tu caso se actualizarÃ¡n en tiempo real directamente en esta aplicaciÃ³n."
             )
         )
     }
@@ -83,7 +83,7 @@ fun CentroAyudaScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Estamos para acompañarte. Resuelve tus dudas sobre el seguimiento de tu caso.",
+                    text = "Estamos para acompaÃ±arte. Resuelve tus dudas sobre el seguimiento de tu caso.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.DarkGray,
                     modifier = Modifier.padding(bottom = 16.dp)

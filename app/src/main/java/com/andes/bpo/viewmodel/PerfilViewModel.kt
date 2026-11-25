@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import android.app.Application
 import android.util.Patterns
@@ -60,7 +60,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
         val remoto = RetrofitClient.usuarioLogueado
 
         if (sesion == null && remoto == null) {
-            _uiState.update { it.copy(cargando = false, errorGeneral = "Debes iniciar sesión") }
+            _uiState.update { it.copy(cargando = false, errorGeneral = "Debes iniciar sesiÃ³n") }
         } else {
             _uiState.update {
                 it.copy(
@@ -84,7 +84,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
         val correo = estado.correo.trim()
         val errorNombre = if (nombre.length !in 2..60) "Debe tener entre 2 y 60 caracteres" else null
         val errorApellido = if (apellido.length !in 2..60) "Debe tener entre 2 y 60 caracteres" else null
-        val errorCorreo = if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) "Correo no válido" else null
+        val errorCorreo = if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) "Correo no vÃ¡lido" else null
 
         _uiState.update {
             it.copy(
@@ -101,7 +101,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val sesion = SesionUsuario.obtenerSesion() ?: error("Sesión expirada")
+                    val sesion = SesionUsuario.obtenerSesion() ?: error("SesiÃ³n expirada")
                     val base = RetrofitClient.usuarioLogueado ?: UsuarioEntity(
                         idUsuario = sesion.idUsuario,
                         rut = sesion.rut,
@@ -136,7 +136,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
                 throw e
             } catch (e: IOException) {
                 _uiState.update {
-                    it.copy(guardandoPerfil = false, errorGeneral = "Sin conexión con el servidor (10.0.2.2:8080)")
+                    it.copy(guardandoPerfil = false, errorGeneral = "Sin conexiÃ³n con el servidor (10.0.2.2:8080)")
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -154,14 +154,14 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
         val estado = _uiState.value
         if (estado.cargando || estado.guardandoPerfil || estado.cambiandoClave) return
 
-        val errorActual = if (actual.isBlank()) "Ingresa tu contraseña actual" else null
+        val errorActual = if (actual.isBlank()) "Ingresa tu contraseÃ±a actual" else null
         val errorNueva = when {
             nueva.length !in 8..72 -> "Debe tener entre 8 y 72 caracteres"
-            !nueva.any { it.isLetter() } || !nueva.any { it.isDigit() } -> "Usa letras y números"
+            !nueva.any { it.isLetter() } || !nueva.any { it.isDigit() } -> "Usa letras y nÃºmeros"
             nueva == actual -> "La nueva clave debe ser diferente a la anterior"
             else -> null
         }
-        val errorConfirmacion = if (nueva != confirmacion) "Las contraseñas no coinciden" else null
+        val errorConfirmacion = if (nueva != confirmacion) "Las contraseÃ±as no coinciden" else null
 
         _uiState.update {
             it.copy(
@@ -179,11 +179,11 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val sesion = SesionUsuario.obtenerSesion() ?: error("Sesión expirada")
+                    val sesion = SesionUsuario.obtenerSesion() ?: error("SesiÃ³n expirada")
 
                     val loginResp = RetrofitClient.api.login(LoginRequest(sesion.rut, actual))
                     if (!loginResp.isSuccessful || loginResp.body() == null) {
-                        throw Exception("La contraseña actual es incorrecta")
+                        throw Exception("La contraseÃ±a actual es incorrecta")
                     }
                     RetrofitClient.jwtToken = loginResp.body()!!.token
                     RetrofitClient.usuarioLogueado = RetrofitClient.sanitizarUsuario(loginResp.body()!!.usuario)
@@ -197,7 +197,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
                     if (!cambioResp.isSuccessful) {
                         val msg = RetrofitClient.extraerMensajeError(
                             cambioResp.errorBody()?.string(),
-                            "No se pudo actualizar la contraseña (${cambioResp.code()})"
+                            "No se pudo actualizar la contraseÃ±a (${cambioResp.code()})"
                         )
                         throw Exception(msg)
                     }
@@ -207,20 +207,20 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
                     it.copy(
                         cambiandoClave = false,
                         claveActualizada = true,
-                        mensaje = "Contraseña actualizada correctamente"
+                        mensaje = "ContraseÃ±a actualizada correctamente"
                     )
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IOException) {
                 _uiState.update {
-                    it.copy(cambiandoClave = false, errorGeneral = "Sin conexión con el servidor (10.0.2.2:8080)")
+                    it.copy(cambiandoClave = false, errorGeneral = "Sin conexiÃ³n con el servidor (10.0.2.2:8080)")
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         cambiandoClave = false,
-                        errorGeneral = e.message ?: "No se pudo cambiar la contraseña"
+                        errorGeneral = e.message ?: "No se pudo cambiar la contraseÃ±a"
                     )
                 }
             }

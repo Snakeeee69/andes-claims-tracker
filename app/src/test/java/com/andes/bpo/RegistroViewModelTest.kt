@@ -1,4 +1,4 @@
-package com.andes.bpo.viewmodel
+﻿package com.andes.bpo.viewmodel
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -14,6 +14,14 @@ class RegistroViewModelTest {
         assertFalse(aseguradoras.isEmpty())
         assertTrue(aseguradoras.all { it.isNotBlank() })
         assertEquals(aseguradoras.size, aseguradoras.toSet().size)
+    }
+
+    @Test
+    fun aseguradorasIncluyenCompaniasPrincipales() {
+        val aseguradoras = RegistroViewModel.ASEGURADORAS
+
+        assertTrue("HDI Seguros" in aseguradoras)
+        assertTrue("BCI Seguros" in aseguradoras)
     }
 
     @Test

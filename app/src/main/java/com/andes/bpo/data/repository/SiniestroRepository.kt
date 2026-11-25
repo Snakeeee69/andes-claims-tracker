@@ -1,4 +1,4 @@
-package com.andes.bpo.data.repository
+﻿package com.andes.bpo.data.repository
 
 import android.util.Log
 import com.andes.bpo.data.local.dao.AreaDao
@@ -87,7 +87,7 @@ class SiniestroRepository(
             dao.insertAviso(
                 AvisoEntity(
                     fechaHora = siniestro.fechaReporte,
-                    mensaje = "Nuevo siniestro recibido: ${siniestro.numero} (${siniestro.tipoSiniestroNombre}) reportado por $nombreAsegurado. Pendiente de asignación.",
+                    mensaje = "Nuevo siniestro recibido: ${siniestro.numero} (${siniestro.tipoSiniestroNombre}) reportado por $nombreAsegurado. Pendiente de asignaciÃ³n.",
                     leido = false,
                     idUsuario = analista.idUsuario,
                     requiereAccion = true,
@@ -173,7 +173,7 @@ class SiniestroRepository(
                             }
                         } else {
                             val nombreArea = when (rem.idArea) {
-                                1 -> "Vehículo - Siniestro"
+                                1 -> "VehÃ­culo - Siniestro"
                                 2 -> "Hogar - Siniestro"
                                 3 -> "Salud - Siniestro"
                                 else -> "Siniestro General"
@@ -232,7 +232,7 @@ class SiniestroRepository(
                     val textoEvento = listOfNotNull(
                         item.evento?.trim()?.takeIf { it.isNotBlank() },
                         item.detalle?.trim()?.takeIf { it.isNotBlank() }
-                    ).joinToString(": ").ifBlank { "Actualización registrada en central" }
+                    ).joinToString(": ").ifBlank { "ActualizaciÃ³n registrada en central" }
 
                     val fechaFormateada = convertirFechaHoraDesdeIso(item.fechaEvento)
                         .ifBlank { localSiniestro.fechaReporte }

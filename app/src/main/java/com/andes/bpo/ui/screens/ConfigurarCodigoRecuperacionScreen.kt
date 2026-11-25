@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -28,7 +28,7 @@ fun ConfigurarCodigoRecuperacionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Código de recuperación") },
+                title = { Text("CÃ³digo de recuperaciÃ³n") },
                 navigationIcon = {
                     TextButton(onClick = { navController.popBackStack() }) { Text("Volver") }
                 }
@@ -44,8 +44,8 @@ fun ConfigurarCodigoRecuperacionScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Este código te permitirá recuperar la contraseña si la olvidas. " +
-                        "Debes guardarlo en un lugar seguro: no se enviará por correo."
+                "Este cÃ³digo te permitirÃ¡ recuperar la contraseÃ±a si la olvidas. " +
+                        "Debes guardarlo en un lugar seguro: no se enviarÃ¡ por correo."
             )
 
             if (estado.codigoGenerado == null) {
@@ -55,7 +55,7 @@ fun ConfigurarCodigoRecuperacionScreen(
                         claveActual = it
                         viewModel.limpiarError()
                     },
-                    label = { Text("Confirma tu contraseña actual") },
+                    label = { Text("Confirma tu contraseÃ±a actual") },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -69,7 +69,7 @@ fun ConfigurarCodigoRecuperacionScreen(
                     enabled = claveActual.isNotBlank() && !estado.cargando,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (estado.cargando) "Generando..." else "Generar código")
+                    Text(if (estado.cargando) "Generando..." else "Generar cÃ³digo")
                 }
             }
 
@@ -79,23 +79,23 @@ fun ConfigurarCodigoRecuperacionScreen(
 
             estado.codigoGenerado?.let { codigo ->
                 HorizontalDivider()
-                Text("Tu código de recuperación", style = MaterialTheme.typography.titleMedium)
+                Text("Tu cÃ³digo de recuperaciÃ³n", style = MaterialTheme.typography.titleMedium)
                 SelectionContainer {
                     Text(codigo, style = MaterialTheme.typography.titleLarge)
                 }
                 OutlinedButton(
                     onClick = { clipboard.setText(AnnotatedString(codigo)) },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Copiar código") }
+                ) { Text("Copiar cÃ³digo") }
                 Text(
-                    "Guárdalo ahora. Al salir de esta pantalla no volveremos a mostrarlo. " +
-                            "Si generas otro código, el anterior dejará de funcionar.",
+                    "GuÃ¡rdalo ahora. Al salir de esta pantalla no volveremos a mostrarlo. " +
+                            "Si generas otro cÃ³digo, el anterior dejarÃ¡ de funcionar.",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Button(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Listo, guardé el código") }
+                ) { Text("Listo, guardÃ© el cÃ³digo") }
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.andes.bpo.ui.screens
+﻿package com.andes.bpo.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -46,7 +46,7 @@ fun RecuperarContrasenaScreen(
         if (estado.claveRestablecida) {
             Toast.makeText(
                 context,
-                "Contraseña actualizada correctamente",
+                "ContraseÃ±a actualizada correctamente",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -55,7 +55,7 @@ fun RecuperarContrasenaScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recuperar contraseña") },
+                title = { Text("Recuperar contraseÃ±a") },
                 navigationIcon = {
                     TextButton(onClick = { navController.popBackStack() }) { Text("Volver") }
                 }
@@ -78,20 +78,20 @@ fun RecuperarContrasenaScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = "¡Contraseña actualizada!",
+                            text = "Â¡ContraseÃ±a actualizada!",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            "Ya puedes iniciar sesión con tu nueva contraseña. " +
-                                    "El código de verificación utilizado ha quedado invalidado."
+                            "Ya puedes iniciar sesiÃ³n con tu nueva contraseÃ±a. " +
+                                    "El cÃ³digo de verificaciÃ³n utilizado ha quedado invalidado."
                         )
                         Button(
                             onClick = { navController.popBackStack() },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Volver al inicio de sesión")
+                            Text("Volver al inicio de sesiÃ³n")
                         }
                     }
                 }
@@ -102,11 +102,11 @@ fun RecuperarContrasenaScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            "1. Solicitar código al correo",
+                            "1. Solicitar cÃ³digo al correo",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            "Ingresa tu RUT y correo registrado para recibir un código de 6 dígitos.",
+                            "Ingresa tu RUT y correo registrado para recibir un cÃ³digo de 6 dÃ­gitos.",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         OutlinedTextField(
@@ -135,7 +135,7 @@ fun RecuperarContrasenaScreen(
                                 correo = it.trim()
                                 viewModel.limpiarError()
                             },
-                            label = { Text("Correo electrónico registrado") },
+                            label = { Text("Correo electrÃ³nico registrado") },
                             placeholder = { Text("usuario@correo.cl") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                             singleLine = true,
@@ -150,13 +150,13 @@ fun RecuperarContrasenaScreen(
                             enabled = !estado.cargando && rut.isNotBlank() && correo.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(if (estado.cargando) "Enviando..." else "Enviar código al correo")
+                            Text(if (estado.cargando) "Enviando..." else "Enviar cÃ³digo al correo")
                         }
 
                         if (estado.codigoEnviadoCorreo) {
                             Text(
                                 text = estado.mensajeEnvio
-                                    ?: "Revisa tu bandeja de entrada (o spam) e ingresa el código de 6 dígitos abajo.",
+                                    ?: "Revisa tu bandeja de entrada (o spam) e ingresa el cÃ³digo de 6 dÃ­gitos abajo.",
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -170,7 +170,7 @@ fun RecuperarContrasenaScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            "2. Restablecer contraseña",
+                            "2. Restablecer contraseÃ±a",
                             style = MaterialTheme.typography.titleMedium
                         )
                         OutlinedTextField(
@@ -179,7 +179,7 @@ fun RecuperarContrasenaScreen(
                                 codigo = input.filter { it.isDigit() }.take(6)
                                 viewModel.limpiarError()
                             },
-                            label = { Text("Código de verificación (6 dígitos)") },
+                            label = { Text("CÃ³digo de verificaciÃ³n (6 dÃ­gitos)") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -191,8 +191,8 @@ fun RecuperarContrasenaScreen(
                                 claveNueva = it
                                 viewModel.limpiarError()
                             },
-                            label = { Text("Nueva contraseña") },
-                            supportingText = { Text("8 a 72 caracteres, con letras y números") },
+                            label = { Text("Nueva contraseÃ±a") },
+                            supportingText = { Text("8 a 72 caracteres, con letras y nÃºmeros") },
                             visualTransformation = if (verClaveNueva) {
                                 VisualTransformation.None
                             } else {
@@ -221,7 +221,7 @@ fun RecuperarContrasenaScreen(
                                 confirmarClave = it
                                 viewModel.limpiarError()
                             },
-                            label = { Text("Confirmar nueva contraseña") },
+                            label = { Text("Confirmar nueva contraseÃ±a") },
                             visualTransformation = if (verConfirmar) {
                                 VisualTransformation.None
                             } else {
@@ -268,7 +268,7 @@ fun RecuperarContrasenaScreen(
                                     codigo.isNotBlank() && claveNueva.isNotBlank() && confirmarClave.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(if (estado.cargando) "Verificando..." else "Cambiar contraseña")
+                            Text(if (estado.cargando) "Verificando..." else "Cambiar contraseÃ±a")
                         }
                     }
                 }
